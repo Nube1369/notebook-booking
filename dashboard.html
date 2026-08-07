@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | IT Notebook Support</title>
+  <meta name="description" content="แดชบอร์ดสำหรับทีม IT จัดการการจองเปลี่ยน Notebook" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  
+  <!-- FullCalendar -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+  <!-- SheetJS (xlsx) for Export Excel -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  
+  <style>
+    /* ── Login Screen ────────────────────────── */
+    .login-overlay{
+      position:fixed;inset:0;
+      background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);
+      z-index:9999;display:flex;align-items:center;justify-content:center;
+      transition:opacity .4s,visibility .4s;
+    }
+    .login-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none;}
+    .login-card{
+      width:100%;max-width:420px;margin:1rem;
+      background:rgba(255,255,255,0.06);backdrop-filter:blur(24px);
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:24px;padding:2.5rem;
+      box-shadow:0 24px 64px rgba(0,0,0,0.5);
+      animation:loginIn .5s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes loginIn{from{opacity:0;transform:scale(.9) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+    .login-logo{
+      width:64px;height:64px;
+      background:linear-gradient(135deg,#3b82f6,#8b5cf6);
+      border-radius:18px;display:flex;align-items:center;justify-content:center;
+      margin:0 auto 1.5rem;box-shadow:0 8px 24px rgba(99,102,241,0.4);
+    }
+    .login-title{font-size:1.375rem;font-weight:800;color:white;text-align:center;margin-bottom:.375rem;}
+    .login-subtitle{font-size:.825rem;color:rgba(255,255,255,0.5);text-align:center;margin-bottom:2rem;}
+    .login-field{margin-bottom:1rem;}
+    .login-label{display:block;font-size:.72rem;font-weight:600;color:rgba(255,255,255,0.55);letter-spacing:.07em;text-transform:uppercase;margin-bottom:.375rem;}
+    .login-input{
+      width:100%;height:48px;padding:0 1rem;
+      background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);
+      border-radius:10px;color:white;font-size:.95rem;font-family:var(--font);
+      outline:none;transition:all .2s;
+    }
+    .login-input::placeholder{color:rgba(255,255,255,0.3);}
+    .login-input:focus{border-color:rgba(99,102,241,0.7);background:rgba(255,255,255,0.12);box-shadow:0 0 0 3px rgba(99,102,241,0.2);}
+    .login-error{
+      font-size:.78rem;color:#fca5a5;margin-top:.375rem;
+      display:none;text-align:center;
+    }
+    .login-error.show{display:block;}
+    .btn-login{
+      width:100%;height:50px;border:none;border-radius:12px;margin-top:.5rem;
+      background:linear-gradient(135deg,#6366f1,#4f46e5);
+      color:white;font-size:1rem;font-family:var(--font);font-weight:700;
+      cursor:pointer;transition:all .25s;
+      box-shadow:0 4px 16px rgba(99,102,241,0.35);
+      display:flex;align-items:center;justify-content:center;gap:.5rem;
+    }
+    .btn-login:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(99,102,241,0.45);}
+    .btn-login:active{transform:translateY(0);}
+    .btn-login:disabled{opacity:.65;cursor:not-allowed;transform:none;}
+    .login-footer{font-size:.72rem;color:rgba(255,255,255,0.25);text-align:center;margin-top:1.5rem;}
+    /* Shake animation for wrong password */
+    @keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-8px);}40%,80%{transform:translateX(8px);}}
+    .shake{animation:shake .4s ease;}
+
+    /* Logout button in nav */
+    .btn-logout{
+      margin-left:.5rem;padding:.4rem .875rem;
+      border:1.5px solid rgba(239,68,68,0.3);border-radius:8px;
+      background:transparent;cursor:pointer;
+      font-size:.78rem;font-family:var(--font);font-weight:600;
+      color:#ef4444;transition:all .2s;
+    }
+    .btn-logout:hover{background:#fef2f2;border-color:#ef4444;}
+
+    :root {
+      --primary: #2563eb; --primary-dark: #1d4ed8;
+      --success: #10b981; --warning: #f59e0b;
+      --danger: #ef4444; --indigo: #6366f1;
+      --bg: #f0f4ff; --card-bg: rgba(255,255,255,0.92);
+      --border: rgba(255,255,255,0.6);
+      --text: #1e293b; --text-muted: #64748b;
+      --shadow: 0 4px 24px rgba(37,99,235,0.08);
+      --radius: 16px; --font: 'Sarabun','Inter',sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:var(--font);background:linear-gradient(135deg,#f0f4ff 0%,#e8f0fe 50%,#f0e8ff 100%);min-height:100vh;color:var(--text);}
+
+    /* NAV */
+    .nav{background:rgba(255,255,255,0.88);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.6);position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(37,99,235,0.07);}
+    .nav-inner{max-width:1320px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;height:64px;gap:1rem;}
+    .nav-logo{display:flex;align-items:center;gap:.75rem;text-decoration:none;color:var(--text);}
+    .nav-logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;flex-shrink:0;}
+    .nav-title{font-size:.95rem;font-weight:700;line-height:1.2;}
+    .nav-subtitle{font-size:.7rem;color:var(--text-muted);}
+    .nav-links{display:flex;gap:.375rem;margin-left:auto;}
+    .nav-link{padding:.5rem .875rem;border-radius:8px;text-decoration:none;font-size:.825rem;font-weight:500;color:var(--text-muted);transition:all .2s;white-space:nowrap;}
+    .nav-link:hover{background:#f1f5f9;color:var(--primary);}
+    .nav-link.active{background:#eff6ff;color:var(--primary);font-weight:600;}
+
+    /* LAYOUT */
+    .container{max-width:1320px;margin:0 auto;padding:1.75rem 1.5rem;}
+    .page-header{margin-bottom:1.5rem;}
+    .page-title{font-size:1.5rem;font-weight:800;color:var(--text);line-height:1.2;}
+    .page-subtitle{font-size:.85rem;color:var(--text-muted);margin-top:.25rem;}
+
+    /* STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+    .stat-card{background:var(--card-bg);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:1rem;transition:transform .2s,box-shadow .2s;}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(37,99,235,0.12);}
+    .stat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+    .stat-icon--blue{background:#eff6ff;} .stat-icon--amber{background:#fffbeb;}
+    .stat-icon--green{background:#f0fdf4;} .stat-icon--indigo{background:#eef2ff;}
+    .stat-value{font-size:2rem;font-weight:800;line-height:1;margin-bottom:.2rem;font-family:'Inter',sans-serif;}
+    .stat-label{font-size:.75rem;color:var(--text-muted);font-weight:500;}
+
+    /* TOOLBAR */
+    .toolbar{display:flex;gap:.75rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;}
+    .search-wrapper{position:relative;flex:1;min-width:200px;}
+    .search-icon{position:absolute;left:.875rem;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none;display:flex;}
+    .search-input{width:100%;height:44px;padding:0 1rem 0 2.75rem;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.875rem;font-family:var(--font);background:white;outline:none;transition:all .2s;color:var(--text);}
+    .search-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,0.1);}
+    .btn-refresh{height:44px;padding:0 1.25rem;border:1.5px solid #e2e8f0;border-radius:10px;background:white;cursor:pointer;font-size:.875rem;font-family:var(--font);color:var(--text);display:flex;align-items:center;gap:.5rem;transition:all .2s;white-space:nowrap;}
+    .btn-refresh:hover{border-color:var(--primary);color:var(--primary);background:#eff6ff;}
+    .btn-refresh:disabled{opacity:.6;cursor:not-allowed;}
+    .btn-export{height:44px;padding:0 1.25rem;border:1.5px solid #10b981;border-radius:10px;background:#f0fdf4;cursor:pointer;font-size:.875rem;font-family:var(--font);color:#065f46;font-weight:600;display:flex;align-items:center;gap:.5rem;transition:all .2s;white-space:nowrap;}
+    .btn-export:hover{background:#d1fae5;}
+    
+    .view-toggle-group{display:flex;background:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.8);border-radius:10px;overflow:hidden;margin-left:auto;}
+    .view-toggle-btn{padding:.6rem 1rem;border:none;background:transparent;cursor:pointer;font-family:var(--font);font-size:.85rem;color:var(--text-muted);font-weight:500;transition:all .2s;}
+    .view-toggle-btn:hover{background:rgba(255,255,255,0.5);}
+    .view-toggle-btn.active{background:white;color:var(--primary);font-weight:600;box-shadow:0 0 10px rgba(0,0,0,0.05);}
+    
+    .last-updated{font-size:.72rem;color:var(--text-muted);white-space:nowrap;}
+
+    /* CALENDAR OVERRIDES */
+    #calendar-view{display:none;background:var(--card-bg);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.75);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);animation:slideUp .3s ease;}
+    .fc-theme-standard td, .fc-theme-standard th{border-color:#e2e8f0;}
+    .fc-col-header-cell{padding:0.5rem 0;background:#f8fafc;}
+    .fc .fc-toolbar-title{font-size:1.25rem;font-weight:700;font-family:var(--font);}
+    .fc .fc-button-primary{background:var(--primary);border-color:var(--primary);font-family:var(--font);}
+    .fc .fc-button-primary:hover{background:var(--primary-dark);border-color:var(--primary-dark);}
+    .fc-event{cursor:pointer;border-radius:5px;padding:2px 6px;font-size:0.75rem;font-family:var(--font);border:none;font-weight:500;}
+    .fc-day-today .fc-daygrid-day-number{background:#2563eb;color:white;border-radius:50%;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;}
+    .fc-daygrid-day.fc-day-today{background:rgba(37,99,235,0.04) !important;}
+    .fc-list-event:hover td{background:rgba(37,99,235,0.04);}
+
+    /* CALENDAR LEGEND */
+    .cal-legend{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center;}
+    .cal-legend-label{font-size:.72rem;color:var(--text-muted);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-right:.25rem;}
+    .cal-dot{display:inline-flex;align-items:center;gap:.375rem;padding:.2rem .6rem;border-radius:6px;font-size:.72rem;font-weight:600;color:white;}
+    .cal-dot--pending{background:#f59e0b;}
+    .cal-dot--inprogress{background:#3b82f6;}
+    .cal-dot--completed{background:#10b981;}
+    .cal-dot--scheduled{background:#6366f1;}
+
+    /* EVENT POPUP */
+    .event-popup{
+      position:absolute;z-index:500;
+      background:white;border-radius:16px;
+      padding:1.25rem;min-width:300px;max-width:340px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.18),0 4px 16px rgba(0,0,0,0.1);
+      border:1px solid rgba(255,255,255,0.8);
+      opacity:0;pointer-events:none;
+      transform:translateY(-6px) scale(0.97);
+      transition:all .2s cubic-bezier(.34,1.56,.64,1);
+    }
+    .event-popup.show{opacity:1;pointer-events:all;transform:translateY(0) scale(1);}
+    .ep-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.875rem;gap:.5rem;}
+    .ep-name{font-size:1rem;font-weight:800;color:var(--text);line-height:1.2;flex:1;}
+    .ep-close{width:24px;height:24px;border:none;background:#f1f5f9;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;transition:background .15s;}
+    .ep-close:hover{background:#e2e8f0;}
+    .ep-status{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .7rem;border-radius:20px;font-size:.75rem;font-weight:700;margin-bottom:.875rem;}
+    .ep-grid{display:flex;flex-direction:column;gap:.5rem;}
+    .ep-row{display:flex;gap:.625rem;font-size:.8rem;}
+    .ep-row-label{color:var(--text-muted);min-width:80px;font-weight:500;flex-shrink:0;}
+    .ep-row-val{color:var(--text);font-weight:600;word-break:break-word;}
+    .ep-ref{font-family:'Inter',monospace;font-size:.72rem;color:#94a3b8;margin-bottom:.5rem;}
+    .ep-notes-box{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:.5rem .625rem;font-size:.775rem;color:#78350f;margin-top:.5rem;line-height:1.5;}
+
+    /* TABS */
+    .tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+    .tab-btn{padding:.6rem 1.25rem;border:none;border-radius:10px;cursor:pointer;font-size:.85rem;font-family:var(--font);font-weight:500;color:var(--text-muted);background:rgba(255,255,255,0.6);transition:all .2s;display:flex;align-items:center;gap:.5rem;}
+    .tab-btn:hover{background:rgba(255,255,255,0.9);color:var(--text);}
+    .tab-btn.active{background:white;box-shadow:0 2px 12px rgba(37,99,235,0.12);}
+    .tab-btn[data-tab="pending"].active{color:#92400e;}
+    .tab-btn[data-tab="completed"].active{color:#065f46;}
+    .tab-btn[data-tab="scheduled"].active{color:#3730a3;}
+    .tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:10px;font-size:.7rem;font-weight:700;background:#f1f5f9;color:#64748b;}
+    .tab-btn[data-tab="pending"].active .tab-count{background:#fef3c7;color:#92400e;}
+    .tab-btn[data-tab="completed"].active .tab-count{background:#d1fae5;color:#065f46;}
+    .tab-btn[data-tab="scheduled"].active .tab-count{background:#e0e7ff;color:#3730a3;}
+
+    /* CARDS GRID */
+    .bookings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:1rem;}
+    .booking-card{background:var(--card-bg);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.75);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);transition:all .2s;animation:slideUp .3s ease;}
+    .booking-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(37,99,235,0.13);}
+    @keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+    .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem;gap:.5rem;}
+    .card-meta{flex:1;min-width:0;}
+    .card-ref{font-size:.72rem;color:var(--text-muted);font-family:'Inter',monospace;letter-spacing:.02em;}
+    .card-date{font-size:.7rem;color:#94a3b8;margin-top:.1rem;}
+    .status-badge{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .7rem;border-radius:20px;font-size:.72rem;font-weight:600;white-space:nowrap;flex-shrink:0;}
+    .status-badge--pending{background:#fef3c7;color:#92400e;}
+    .status-badge--in_progress{background:#dbeafe;color:#1e40af;}
+    .status-badge--completed{background:#d1fae5;color:#065f46;}
+    .status-badge--scheduled{background:#e0e7ff;color:#3730a3;}
+    .status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;animation:pulse 2s infinite;}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+    .status-badge--completed .status-dot,.status-badge--scheduled .status-dot{animation:none;}
+
+    .card-name{font-size:1rem;font-weight:700;margin-bottom:.625rem;color:var(--text);}
+    .card-info{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.75rem;}
+    .card-row{display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--text-muted);}
+    .card-row strong{color:var(--text);font-weight:600;}
+    .card-machine{font-family:'Inter',monospace;background:#f8fafc;padding:.15rem .4rem;border-radius:4px;font-size:.75rem;color:#475569;}
+
+    .card-tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.75rem;}
+    .tag{display:inline-flex;align-items:center;gap:.2rem;padding:.2rem .55rem;background:#f1f5f9;border-radius:6px;font-size:.7rem;color:#475569;}
+    .tag--floor{background:#eff6ff;color:#1e40af;}
+    .tag--backup{background:#f0fdf4;color:#065f46;}
+
+    .card-notes{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:.6rem .75rem;font-size:.775rem;color:#78350f;margin-bottom:.75rem;line-height:1.5;}
+
+    .card-footer{display:flex;gap:.5rem;justify-content:flex-end;align-items:center;flex-wrap:wrap;}
+    .appt-info-badge{display:flex;align-items:center;gap:.4rem;padding:.45rem .75rem;background:#eef2ff;border-radius:8px;font-size:.775rem;color:#3730a3;font-weight:500;flex:1;}
+
+    /* BUTTONS */
+    .btn-done{display:inline-flex;align-items:center;gap:.4rem;padding:.575rem 1.125rem;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:10px;cursor:pointer;font-size:.825rem;font-family:var(--font);font-weight:600;transition:all .2s;white-space:nowrap;}
+    .btn-done:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(16,185,129,0.38);}
+    .btn-done:active{transform:translateY(0);}
+    .btn-appt{display:inline-flex;align-items:center;gap:.4rem;padding:.575rem 1.125rem;background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;border:none;border-radius:10px;cursor:pointer;font-size:.825rem;font-family:var(--font);font-weight:600;text-decoration:none;transition:all .2s;white-space:nowrap;}
+    .btn-appt:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(99,102,241,0.38);}
+
+    /* EMPTY STATE */
+    .empty-state{text-align:center;padding:4rem 2rem;color:var(--text-muted);grid-column:1/-1;}
+    .empty-icon{font-size:3.5rem;margin-bottom:1rem;display:block;}
+    .empty-state h3{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.5rem;}
+    .empty-state p{font-size:.85rem;}
+
+    /* LOADING */
+    .loading-state{display:flex;align-items:center;justify-content:center;gap:.75rem;padding:3rem;color:var(--text-muted);grid-column:1/-1;font-size:.9rem;}
+
+    /* MODAL */
+    .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.45);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .25s;}
+    .modal-overlay.show{opacity:1;pointer-events:all;}
+    .modal{background:white;border-radius:20px;padding:2rem;max-width:420px;width:90%;transform:scale(.92) translateY(8px);transition:transform .25s;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
+    .modal-overlay.show .modal{transform:scale(1) translateY(0);}
+    .modal-icon{font-size:2.75rem;text-align:center;margin-bottom:1rem;}
+    .modal-title{font-size:1.125rem;font-weight:800;text-align:center;margin-bottom:.5rem;color:var(--text);}
+    .modal-desc{font-size:.85rem;color:var(--text-muted);text-align:center;margin-bottom:1.5rem;line-height:1.6;}
+    .modal-name{color:var(--primary);font-weight:700;}
+    .modal-actions{display:flex;gap:.75rem;}
+    .btn-cancel-modal{flex:1;padding:.75rem;border:1.5px solid #e2e8f0;border-radius:10px;background:white;cursor:pointer;font-size:.875rem;font-family:var(--font);color:var(--text-muted);transition:all .2s;font-weight:500;}
+    .btn-cancel-modal:hover{border-color:#cbd5e1;background:#f8fafc;}
+    .btn-confirm-modal{flex:2;padding:.75rem;border:none;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);color:white;cursor:pointer;font-size:.875rem;font-family:var(--font);font-weight:700;transition:all .2s;}
+    .btn-confirm-modal:hover{box-shadow:0 4px 14px rgba(16,185,129,0.38);}
+    .btn-confirm-modal:disabled{opacity:.65;cursor:not-allowed;}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(10px);background:#1e293b;color:white;padding:.75rem 1.5rem;border-radius:12px;font-size:.875rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.2);opacity:0;transition:all .3s;z-index:2000;white-space:nowrap;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    .toast.success{background:linear-gradient(135deg,#10b981,#059669);}
+    .toast.error{background:linear-gradient(135deg,#ef4444,#dc2626);}
+
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .spin{animation:spin 1s linear infinite;}
+
+    @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:600px){.stats-grid{grid-template-columns:1fr 1fr;}.bookings-grid{grid-template-columns:1fr;}.container{padding:1rem;}.nav-links .nav-link span{display:none;}}
+  </style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║        LOGIN SCREEN (Admin)      ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  <div class="login-overlay" id="login-overlay">
+    <div class="login-card" id="login-card">
+      <div class="login-logo">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="11" width="18" height="11" rx="2" stroke="white" stroke-width="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="12" cy="16" r="1.5" fill="white"/>
+        </svg>
+      </div>
+      <div class="login-title">Admin Dashboard</div>
+      <div class="login-subtitle">IT Notebook Support — เฉพาะผู้ดูแลระบบ</div>
+
+      <form id="login-form" autocomplete="off">
+        <div class="login-field">
+          <label class="login-label" for="login-user">Username</label>
+          <input type="text" id="login-user" class="login-input" placeholder="กรอก username" autocomplete="username" />
+        </div>
+        <div class="login-field">
+          <label class="login-label" for="login-pass">Password</label>
+          <input type="password" id="login-pass" class="login-input" placeholder="กรอก password" autocomplete="current-password" />
+        </div>
+        <div class="login-error" id="login-error">❌ Username หรือ Password ไม่ถูกต้อง</div>
+        <button type="submit" class="btn-login" id="btn-login">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <polyline points="10 17 15 12 10 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="15" y1="12" x2="3" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          เข้าสู่ระบบ
+        </button>
+      </form>
+
+      <div class="login-footer">© IT Support Department — Authorized Personnel Only</div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="nav-logo" href="index.html">
+        <div class="nav-logo-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="3" width="20" height="14" rx="2" stroke="white" stroke-width="2"/>
+            <path d="M8 21h8M12 17v4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="nav-title">IT Notebook Support</div>
+          <div class="nav-subtitle">ระบบจองเปลี่ยน Notebook</div>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">📋 จองเครื่อง</a>
+        <a href="appointment.html" class="nav-link">📅 นัดหมาย</a>
+        <button class="btn-logout" id="btn-logout" title="ออกจากระบบ">🔐 ออกจากระบบ</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <!-- Page header -->
+    <div class="page-header">
+      <h1 class="page-title">📊 Dashboard</h1>
+      <p class="page-subtitle">จัดการการจองเปลี่ยน Notebook ทั้งหมด — ทีม IT Support</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon stat-icon--blue">📋</div>
+        <div><div class="stat-value" id="stat-total">—</div><div class="stat-label">รวมทั้งหมด</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon--amber">⏳</div>
+        <div><div class="stat-value" id="stat-pending">—</div><div class="stat-label">รอดำเนินการ</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon--green">✅</div>
+        <div><div class="stat-value" id="stat-completed">—</div><div class="stat-label">เสร็จแล้ว</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon--indigo">📅</div>
+        <div><div class="stat-value" id="stat-scheduled">—</div><div class="stat-label">นัดหมายแล้ว</div></div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-wrapper">
+        <span class="search-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </span>
+        <input type="search" id="search-input" class="search-input" placeholder="ค้นหาชื่อ, เบอร์, หรือเลขอ้างอิง..." />
+      </div>
+      <button class="btn-refresh" id="btn-refresh">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" id="refresh-icon"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3 3v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        รีเฟรช
+      </button>
+      <button class="btn-export" id="btn-export" title="Export ข้อมูลในแท็บปัจจุบัน เป็น Excel">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Export Excel
+      </button>
+      <span class="last-updated" id="last-updated"></span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="pending" id="tab-pending">
+        ⏳ รอดำเนินการ <span class="tab-count" id="count-pending">0</span>
+      </button>
+      <button class="tab-btn" data-tab="completed" id="tab-completed">
+        ✅ เสร็จแล้ว <span class="tab-count" id="count-completed">0</span>
+      </button>
+      <button class="tab-btn" data-tab="scheduled" id="tab-scheduled">
+        📅 นัดหมายแล้ว <span class="tab-count" id="count-scheduled">0</span>
+      </button>
+      
+      <div class="view-toggle-group">
+        <button class="view-toggle-btn active" id="view-grid">🗂️ แบบการ์ด</button>
+        <button class="view-toggle-btn" id="view-calendar">📆 ปฏิทิน</button>
+      </div>
+    </div>
+
+    <!-- Bookings grid -->
+    <div class="bookings-grid" id="bookings-grid">
+      <div class="loading-state">
+        <svg class="spin" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/></svg>
+        กำลังโหลดข้อมูล...
+      </div>
+    </div>
+
+    <!-- Calendar View Container -->
+    <div id="calendar-view">
+      <!-- Legend -->
+      <div class="cal-legend">
+        <span class="cal-legend-label">สถานะ:</span>
+        <span class="cal-dot cal-dot--pending">⏳ รอดำเนินการ</span>
+        <span class="cal-dot cal-dot--inprogress">🔄 กำลังดำเนินการ</span>
+        <span class="cal-dot cal-dot--completed">✅ เสร็จแล้ว</span>
+        <span class="cal-dot cal-dot--scheduled">📅 นัดหมายแล้ว</span>
+      </div>
+      <div id="calendar"></div>
+    </div>
+
+    <!-- Calendar Event Popup -->
+    <div class="event-popup" id="event-popup">
+      <div class="ep-header">
+        <div>
+          <div class="ep-name" id="ep-name"></div>
+          <div class="ep-ref" id="ep-ref"></div>
+        </div>
+        <button class="ep-close" id="event-popup-close">✕</button>
+      </div>
+      <span class="ep-status" id="ep-status"></span>
+      <div class="ep-grid">
+        <div class="ep-row">
+          <span class="ep-row-label">📞 เบอร์โทร</span>
+          <span class="ep-row-val" id="ep-phone"></span>
+        </div>
+        <div class="ep-row">
+          <span class="ep-row-label">💻 รหัสเครื่อง</span>
+          <span class="ep-row-val" id="ep-machine"></span>
+        </div>
+        <div class="ep-row">
+          <span class="ep-row-label">🗓️ วันที่จอง</span>
+          <span class="ep-row-val" id="ep-created"></span>
+        </div>
+        <div class="ep-row" id="ep-appt-row">
+          <span class="ep-row-label">📅 นัดหมาย</span>
+          <span class="ep-row-val" id="ep-appt"></span>
+        </div>
+        <div id="ep-notes-row">
+          <div class="ep-notes-box" id="ep-notes"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Confirm Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-icon">✅</div>
+      <div class="modal-title">ยืนยันว่าเสร็จแล้ว?</div>
+      <div class="modal-desc">
+        คุณต้องการมาร์คการจองของ<br/>
+        <span class="modal-name" id="modal-name"></span><br/>
+        ว่าดำเนินการเสร็จสิ้นแล้วใช่ไหม?<br/>
+        <small>รายการจะย้ายไปยังแท็บ "เสร็จแล้ว"</small>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel-modal" id="btn-modal-cancel">ยกเลิก</button>
+        <button class="btn-confirm-modal" id="btn-modal-confirm">✓ ยืนยัน เสร็จแล้ว</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

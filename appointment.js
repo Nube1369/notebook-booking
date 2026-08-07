@@ -267,7 +267,10 @@ function renderScheduler() {
   });
 
   // Date change
-  document.getElementById('appt-date').addEventListener('change', checkCanConfirm);
+  document.getElementById('appt-date').addEventListener('change', async (e) => {
+    checkCanConfirm();
+    await checkSlotCapacity(e.target.value);
+  });
 
   // Confirm button
   document.getElementById('btn-confirm-appt').addEventListener('click', confirmAppointment);
@@ -319,6 +322,76 @@ async function confirmAppointment() {
     showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
     btn.disabled = false;
     btn.innerHTML = '📅 ยืนยันนัดหมาย';
+  }
+}
+
+// ── Check Slot Capacity ────────────────────────
+async function checkSlotCapacity(dateStr) {
+  if (!dateStr) return;
+  const timeBtns = document.querySelectorAll('.time-btn');
+  
+  // Reset all buttons first
+  timeBtns.forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('full');
+    btn.innerHTML = btn.dataset.time;
+  });
+
+  try {
+    // 1. Fetch bookings on this date that are scheduled or delivered
+    const { data: bookings, error: bErr } = await db
+      .from('bookings')
+      .select('appointment_time')
+      .eq('appointment_date', dateStr)
+      .in('status', ['scheduled', 'delivered']);
+      
+    if (bErr) throw bErr;
+
+    // 2. Fetch specific slot limits for this date
+    const { data: limits, error: lErr } = await db
+      .from('slot_limits')
+      .select('slot_time, max_capacity')
+      .eq('slot_date', dateStr);
+
+    if (lErr) throw lErr;
+
+    // Build capacity map from limits
+    const limitMap = {};
+    limits.forEach(l => limitMap[l.slot_time] = l.max_capacity);
+
+    // Count bookings per slot
+    const countMap = {};
+    bookings.forEach(b => {
+      if (b.appointment_time) {
+        countMap[b.appointment_time] = (countMap[b.appointment_time] || 0) + 1;
+      }
+    });
+
+    // Check each button
+    timeBtns.forEach(btn => {
+      const t = btn.dataset.time;
+      const count = countMap[t] || 0;
+      const limit = limitMap[t]; // undefined means no limit
+      
+      if (limit !== undefined && count >= limit) {
+        btn.disabled = true;
+        btn.classList.add('full');
+        btn.innerHTML = `${t} <br><span style="font-size:0.65rem;">(เต็ม)</span>`;
+      }
+    });
+    
+    // Unselect if currently selected button became disabled
+    if (selectedTime) {
+      const selectedBtn = document.querySelector(`.time-btn[data-time="${selectedTime}"]`);
+      if (selectedBtn && selectedBtn.disabled) {
+        selectedBtn.classList.remove('selected');
+        selectedTime = null;
+        checkCanConfirm();
+      }
+    }
+
+  } catch (err) {
+    console.error('Error checking capacity:', err);
   }
 }
 

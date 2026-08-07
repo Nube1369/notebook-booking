@@ -147,9 +147,27 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     currentTab = btn.dataset.tab;
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    renderBookings();
-    // Refresh calendar events when tab changes in calendar view
-    if (currentView === 'calendar') updateCalendarEvents();
+    
+    const settingsView = document.getElementById('settings-view');
+    if (currentTab === 'settings') {
+      document.querySelector('.view-toggle-group').style.display = 'none';
+      bookingsGridEl.style.display = 'none';
+      calendarViewEl.style.display = 'none';
+      settingsView.style.display = 'block';
+      document.getElementById('search-input').disabled = true;
+      btnRefresh.disabled = true;
+      btnExport.disabled = true;
+      loadLimits();
+    } else {
+      document.querySelector('.view-toggle-group').style.display = 'flex';
+      settingsView.style.display = 'none';
+      document.getElementById('search-input').disabled = false;
+      btnRefresh.disabled = false;
+      btnExport.disabled = false;
+      switchView(currentView);
+      renderBookings();
+      if (currentView === 'calendar') updateCalendarEvents();
+    }
   });
 });
 
@@ -734,13 +752,88 @@ async function confirmDelivered() {
 }
 
 // ── Toast ──────────────────────────────────────
-let toastTimer;
-function showToast(msg, type = '') {
-  clearTimeout(toastTimer);
+function showToast(msg, type = 'success') {
   toast.textContent = msg;
-  toast.className = 'toast show' + (type ? ' ' + type : '');
-  toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+  toast.className = 'toast show ' + type;
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3000);
 }
+
+// ── Slot Limits (Settings) ────────────────────
+const settingsForm = document.getElementById('settings-form');
+const limitsTbody = document.getElementById('limits-tbody');
+
+settingsForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const dateVal = document.getElementById('limit-date').value;
+  const timeVal = document.getElementById('limit-time').value;
+  const capVal = document.getElementById('limit-capacity').value;
+  
+  const btn = document.getElementById('btn-save-limit');
+  const origText = btn.textContent;
+  btn.textContent = '⏳ กำลังบันทึก...';
+  btn.disabled = true;
+
+  try {
+    const { error } = await db.from('slot_limits').upsert({
+      slot_date: dateVal,
+      slot_time: timeVal,
+      max_capacity: parseInt(capVal, 10)
+    }, { onConflict: 'slot_date, slot_time' });
+
+    if (error) throw error;
+    showToast('บันทึกการตั้งค่าเรียบร้อย', 'success');
+    loadLimits();
+  } catch (err) {
+    console.error(err);
+    showToast('เกิดข้อผิดพลาดในการบันทึก', 'error');
+  } finally {
+    btn.textContent = origText;
+    btn.disabled = false;
+  }
+});
+
+async function loadLimits() {
+  limitsTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:2rem;">กำลังโหลด...</td></tr>';
+  try {
+    const { data, error } = await db.from('slot_limits').select('*').order('slot_date', { ascending: true }).order('slot_time', { ascending: true });
+    if (error) throw error;
+    
+    if (!data || data.length === 0) {
+      limitsTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:2rem; color:#64748b;">ยังไม่มีการตั้งค่าจำกัดคิว</td></tr>';
+      return;
+    }
+    
+    limitsTbody.innerHTML = data.map(item => `
+      <tr>
+        <td>${formatDate(item.slot_date)}</td>
+        <td>${item.slot_time} น.</td>
+        <td><strong>${item.max_capacity}</strong> คน</td>
+        <td style="text-align:right;">
+          <button class="btn-delete-limit" onclick="deleteLimit('${item.id}')">ลบ</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error(err);
+    limitsTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:2rem; color:#ef4444;">เกิดข้อผิดพลาดในการดึงข้อมูล</td></tr>';
+  }
+}
+
+window.deleteLimit = async function(id) {
+  if (!confirm('ยืนยันการลบการตั้งค่านี้?')) return;
+  try {
+    const { error } = await db.from('slot_limits').delete().eq('id', id);
+    if (error) throw error;
+    showToast('ลบการตั้งค่าเรียบร้อย', 'success');
+    loadLimits();
+  } catch (err) {
+    console.error(err);
+    showToast('ลบข้อมูลไม่สำเร็จ', 'error');
+  }
+};
+
 
 
 // ── Auto-refresh every 30s ────────────────────

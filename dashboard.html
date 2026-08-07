@@ -201,6 +201,23 @@
     .tab-btn[data-tab="completed"].active .tab-count{background:#d1fae5;color:#065f46;}
     .tab-btn[data-tab="scheduled"].active .tab-count{background:#e0e7ff;color:#3730a3;}
     .tab-btn[data-tab="delivered"].active .tab-count{background:#ccfbf1;color:#0f766e;}
+    
+    /* SETTINGS VIEW */
+    .settings-card{background:var(--card-bg);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.75);border-radius:var(--radius);padding:2rem;box-shadow:var(--shadow);}
+    .settings-form .sf-row{display:flex;gap:1rem;flex-wrap:wrap;}
+    .settings-form .sf-field{flex:1;min-width:150px;}
+    .field-label{font-size:.8rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:.4rem;}
+    .field-input{width:100%;height:44px;padding:0 1rem;border:1.5px solid #cbd5e1;border-radius:8px;font-family:var(--font);font-size:.95rem;background:white;outline:none;}
+    .field-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,0.1);}
+    .btn-save-limit{height:44px;padding:0 1.5rem;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-family:var(--font);transition:all .2s;white-space:nowrap;width:100%;}
+    .btn-save-limit:hover{box-shadow:0 4px 12px rgba(37,99,235,0.3);transform:translateY(-1px);}
+    .limits-table-wrapper{overflow-x:auto;border:1px solid #e2e8f0;border-radius:12px;background:white;}
+    .limits-table{width:100%;border-collapse:collapse;font-size:.9rem;text-align:left;}
+    .limits-table th{background:#f8fafc;color:#475569;font-weight:600;padding:.875rem 1rem;}
+    .limits-table td{padding:.875rem 1rem;border-top:1px solid #e2e8f0;color:var(--text);}
+    .btn-delete-limit{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;padding:.35rem .75rem;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;transition:all .2s;}
+    .btn-delete-limit:hover{background:#fee2e2;border-color:#f87171;}
+    .tab-btn[data-tab="settings"].active{color:#475569;}
 
     /* CARDS GRID */
     .bookings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:1rem;}
@@ -415,6 +432,9 @@
       <button class="tab-btn" data-tab="delivered" id="tab-delivered">
         🏁 เสร็จเรียบร้อย <span class="tab-count" id="count-delivered">0</span>
       </button>
+      <button class="tab-btn" data-tab="settings" id="tab-settings">
+        ⚙️ ตั้งค่าคิว
+      </button>
       
       <div class="view-toggle-group">
         <button class="view-toggle-btn active" id="view-grid">🗂️ แบบการ์ด</button>
@@ -442,6 +462,70 @@
         <span class="cal-dot" style="background:#14b8a6;">🏁 เสร็จเรียบร้อย</span>
       </div>
       <div id="calendar"></div>
+    </div>
+
+    <!-- Settings View Container -->
+    <div id="settings-view" style="display: none;">
+      <div class="settings-card">
+        <h2 style="margin-bottom: 0.5rem; color: var(--text);">⚙️ ตั้งค่าจำนวนคิวที่รับได้ (Slot Limits)</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+          กำหนดจำนวนพนักงานสูงสุดที่สามารถนัดหมายในแต่ละช่วงเวลาได้ (หากวัน/เวลาไหนไม่ได้ตั้งค่าไว้ จะถือว่ารับได้ไม่จำกัด)
+        </p>
+        
+        <form id="settings-form" class="settings-form">
+          <div class="sf-row">
+            <div class="sf-field">
+              <label class="field-label">เลือกวันที่</label>
+              <input type="date" id="limit-date" required class="field-input">
+            </div>
+            <div class="sf-field">
+              <label class="field-label">เลือกเวลา</label>
+              <select id="limit-time" required class="field-input">
+                <option value="09:00">09:00</option>
+                <option value="09:30">09:30</option>
+                <option value="10:00">10:00</option>
+                <option value="10:30">10:30</option>
+                <option value="11:00">11:00</option>
+                <option value="11:30">11:30</option>
+                <option value="13:00">13:00</option>
+                <option value="13:30">13:30</option>
+                <option value="14:00">14:00</option>
+                <option value="14:30">14:30</option>
+                <option value="15:00">15:00</option>
+                <option value="15:30">15:30</option>
+                <option value="16:00">16:00</option>
+                <option value="16:30">16:30</option>
+              </select>
+            </div>
+            <div class="sf-field">
+              <label class="field-label">จำกัดคิวสูงสุด (คน)</label>
+              <input type="number" id="limit-capacity" required min="1" value="8" class="field-input">
+            </div>
+            <div class="sf-field" style="display: flex; align-items: flex-end;">
+              <button type="submit" class="btn-save-limit" id="btn-save-limit">💾 บันทึกการตั้งค่า</button>
+            </div>
+          </div>
+        </form>
+
+        <hr style="border: none; border-top: 1px dashed var(--border); margin: 2rem 0;">
+        
+        <h3 style="margin-bottom: 1rem; color: var(--text);">📋 รายการตั้งค่าคิว (ปัจจุบัน)</h3>
+        <div class="limits-table-wrapper">
+          <table class="limits-table">
+            <thead>
+              <tr>
+                <th>วันที่</th>
+                <th>เวลา</th>
+                <th>จำนวนรับได้สูงสุด</th>
+                <th style="text-align:right;">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="limits-tbody">
+              <tr><td colspan="4" style="text-align:center; color:#64748b; padding:2rem;">กำลังโหลดข้อมูล...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- Calendar Event Popup -->

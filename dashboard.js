@@ -767,8 +767,18 @@ const limitsTbody = document.getElementById('limits-tbody');
 settingsForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const dateVal = document.getElementById('limit-date').value;
-  const timeVal = document.getElementById('limit-time').value;
+  const timeStartStr = document.getElementById('limit-time-start').value;
+  const timeEndStr = document.getElementById('limit-time-end').value;
   const capVal = document.getElementById('limit-capacity').value;
+  
+  const options = Array.from(document.getElementById('limit-time-start').options).map(o => o.value);
+  const startIndex = options.indexOf(timeStartStr);
+  const endIndex = options.indexOf(timeEndStr);
+  
+  if (startIndex > endIndex) {
+    showToast('เวลาเริ่มต้นต้องไม่เกินเวลาสิ้นสุด', 'error');
+    return;
+  }
   
   const btn = document.getElementById('btn-save-limit');
   const origText = btn.textContent;
@@ -776,13 +786,19 @@ settingsForm.addEventListener('submit', async (e) => {
   btn.disabled = true;
 
   try {
-    const { error } = await db.from('slot_limits').upsert({
-      slot_date: dateVal,
-      slot_time: timeVal,
-      max_capacity: parseInt(capVal, 10)
-    }, { onConflict: 'slot_date, slot_time' });
+    const slotsToUpdate = options.slice(startIndex, endIndex + 1);
+    
+    // Upsert each slot
+    for (const slot of slotsToUpdate) {
+      const { error } = await db.from('slot_limits').upsert({
+        slot_date: dateVal,
+        slot_time: slot,
+        max_capacity: parseInt(capVal, 10)
+      }, { onConflict: 'slot_date, slot_time' });
 
-    if (error) throw error;
+      if (error) throw error;
+    }
+
     showToast('บันทึกการตั้งค่าเรียบร้อย', 'success');
     loadLimits();
   } catch (err) {

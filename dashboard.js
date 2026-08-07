@@ -225,11 +225,14 @@ function exportToExcel() {
     'รหัสเครื่อง (Machine Code)':  b.machine_code || '',
     'สถานะ':                       statusMap[b.status] || b.status || '',
     'วันที่สร้างรายการ':           formatDate(b.created_at),
+    'วันที่ทำเสร็จ':               b.completed_at ? formatDate(b.completed_at) : '',
+    'วันที่กดนัดหมาย':             b.scheduled_at ? formatDate(b.scheduled_at) : '',
+    'วันที่ส่งมอบ':                b.delivered_at ? formatDate(b.delivered_at) : '',
     'เครื่องปริ้น (ชั้น)':         b.printer_floors ? b.printer_floors.join(', ') : '',
     'รายการ Backup':               b.backup_items   ? b.backup_items.join(', ')   : '',
     'หมายเหตุ Backup':             b.backup_notes || '',
-    'วันที่นัดหมาย':               b.appointment_date ? formatApptDate(b.appointment_date) : '',
-    'เวลานัดหมาย':                b.appointment_time || ''
+    'วันที่นัดหมาย (รับเครื่อง)':    b.appointment_date ? formatApptDate(b.appointment_date) : '',
+    'เวลานัดหมาย (รับเครื่อง)':    b.appointment_time || ''
   }));
 
   const ws = XLSX.utils.json_to_sheet(excelData);
@@ -237,7 +240,7 @@ function exportToExcel() {
   // Column widths
   ws['!cols'] = [
     {wch:6},{wch:20},{wch:28},{wch:14},{wch:22},{wch:16},
-    {wch:22},{wch:22},{wch:28},{wch:28},{wch:24},{wch:14}
+    {wch:22},{wch:22},{wch:22},{wch:22},{wch:22},{wch:28},{wch:28},{wch:24},{wch:14}
   ];
 
   // Freeze top row (header)
@@ -631,7 +634,10 @@ async function confirmDone() {
 
     const { data, error } = await db
       .from('bookings')
-      .update({ status: 'completed' })
+      .update({ 
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      })
       .eq('id', numericId)
       .select();
 
@@ -693,7 +699,10 @@ async function confirmDelivered() {
     const numericId = Number(confirmDeliveredId);
     const { data, error } = await db
       .from('bookings')
-      .update({ status: 'delivered' })
+      .update({ 
+        status: 'delivered',
+        delivered_at: new Date().toISOString()
+      })
       .eq('id', numericId)
       .select();
 

@@ -301,6 +301,7 @@ async function confirmAppointment() {
         status: 'scheduled',
         appointment_date: apptDate,
         appointment_time: apptTime,
+        scheduled_at: new Date().toISOString()
       })
       .eq('id', currentBooking.id);
 

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>คู่มือการใช้งาน | จองเปลี่ยน Notebook</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb; 
+      --primary-dark: #1d4ed8;
+      --indigo: #6366f1;
+      --teal: #14b8a6;
+      --bg: #f0f4ff; 
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --border: rgba(255, 255, 255, 0.6);
+      --text: #1e293b; 
+      --text-muted: #64748b;
+      --shadow: 0 8px 32px rgba(37,99,235,0.08);
+      --radius: 16px; 
+      --font: 'Sarabun', 'Inter', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 50%, #f0e8ff 100%);
+      min-height: 100vh;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* NAV */
+    .nav {
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.6);
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 20px rgba(37,99,235,0.07);
+    }
+    .nav-inner {
+      max-width: 900px; margin: 0 auto; padding: 0 1.5rem;
+      display: flex; align-items: center; height: 64px; gap: 1rem;
+    }
+    .nav-logo { display: flex; align-items: center; gap: .75rem; text-decoration: none; color: var(--text); }
+    .nav-logo-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;
+    }
+    .nav-title { font-size: .95rem; font-weight: 700; line-height: 1.2; }
+    .nav-subtitle { font-size: .7rem; color: var(--text-muted); }
+    .nav-links { display: flex; gap: .375rem; margin-left: auto; }
+    .nav-link {
+      padding: .5rem .875rem; border-radius: 8px; text-decoration: none;
+      font-size: .825rem; font-weight: 500; color: var(--text-muted);
+      transition: all .2s; white-space: nowrap;
+    }
+    .nav-link:hover { background: #f1f5f9; color: var(--primary); }
+    .nav-link.active { background: #eff6ff; color: var(--primary); font-weight: 600; }
+
+    /* HERO */
+    .hero {
+      text-align: center; padding: 4rem 1.5rem 2rem;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin-bottom: 1rem; font-family: 'Inter', 'Sarabun', sans-serif;}
+    .hero p { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto; line-height: 1.6; }
+
+    /* CONTENT */
+    .container {
+      max-width: 900px; margin: 0 auto; padding: 1.5rem; flex: 1;
+    }
+
+    .step-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .step-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(37,99,235,0.12);
+    }
+    .step-number {
+      width: 64px; height: 64px;
+      border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.75rem; font-weight: 800; font-family: 'Inter', sans-serif;
+      flex-shrink: 0;
+      color: white;
+    }
+    .step-1 .step-number { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+    .step-2 .step-number { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .step-3 .step-number { background: linear-gradient(135deg, #10b981, #059669); }
+
+    .step-content { flex: 1; }
+    .step-title { font-size: 1.4rem; font-weight: 700; margin-bottom: .75rem; color: #0f172a; }
+    .step-desc { font-size: 1rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 1.5rem; }
+    
+    .step-details {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 1.25rem;
+      border: 1px dashed #cbd5e1;
+    }
+    .step-details ul { margin-left: 1.25rem; color: #475569; font-size: 0.95rem; line-height: 1.6; }
+    .step-details li { margin-bottom: 0.5rem; }
+    .step-details li:last-child { margin-bottom: 0; }
+
+    .btn-action {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white; border-radius: 10px;
+      text-decoration: none; font-weight: 600; font-size: 0.95rem;
+      transition: all 0.2s;
+      margin-top: 1.5rem;
+    }
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(37,99,235,0.25);
+    }
+    
+    .step-3 .btn-action { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+    .step-3 .btn-action:hover { box-shadow: 0 8px 24px rgba(20,184,166,0.25); }
+
+    @media (max-width: 768px) {
+      .step-card { flex-direction: column; gap: 1.5rem; padding: 1.5rem; }
+      .hero { padding: 3rem 1.5rem 1.5rem; }
+      .hero h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="nav-logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+            <path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="nav-title">IT Support</div>
+          <div class="nav-subtitle">Notebook Replacement</div>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">📝 จองคิว</a>
+        <a href="appointment.html" class="nav-link">📅 นัดหมายรับเครื่อง</a>
+        <a href="guide.html" class="nav-link active">💡 วิธีใช้งาน</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero">
+    <h1>คู่มือการจองเปลี่ยน Notebook</h1>
+    <p>ขั้นตอนง่ายๆ ในการดำเนินการขอเปลี่ยนโน้ตบุ๊กใหม่กับทาง IT Support ตั้งแต่การกรอกข้อมูล จนถึงการนัดหมายรับเครื่อง</p>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="container">
+    
+    <!-- STEP 1 -->
+    <div class="step-card step-1">
+      <div class="step-number">1</div>
+      <div class="step-content">
+        <h2 class="step-title">กรอกข้อมูลจองสิทธิ์</h2>
+        <p class="step-desc">
+          เริ่มต้นโดยการกรอกข้อมูลส่วนตัวและรายละเอียดเครื่องปัจจุบัน เพื่อให้ทีม IT ทราบความต้องการและเตรียมเครื่องใหม่ให้คุณได้อย่างถูกต้อง
+        </p>
+        <div class="step-details">
+          <strong>ข้อมูลที่ต้องเตรียม:</strong>
+          <ul>
+            <li>ชื่อ-นามสกุล (ภาษาอังกฤษ ตามบัตรพนักงาน)</li>
+            <li>เบอร์โทรศัพท์มือถือที่สามารถติดต่อได้</li>
+            <li>รหัสเครื่อง (Machine Code) ปัจจุบันที่ใช้งานอยู่</li>
+            <li>เครื่องปริ้นที่ต้องการให้ IT ช่วยตั้งค่าให้</li>
+            <li>โฟลเดอร์หรือข้อมูลที่ต้องการ Backup (ถ้ามี)</li>
+          </ul>
+        </div>
+        <a href="index.html" class="btn-action">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          ไปที่หน้ากรอกข้อมูล
+        </a>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-card step-2">
+      <div class="step-number">2</div>
+      <div class="step-content">
+        <h2 class="step-title">รอ IT ดำเนินการเตรียมเครื่อง</h2>
+        <p class="step-desc">
+          หลังจากคุณกดยืนยันการจองเรียบร้อยแล้ว ข้อมูลจะถูกส่งไปยังทีม IT ทันที คุณยังไม่สามารถนัดหมายรับเครื่องได้ในขั้นตอนนี้ 
+        </p>
+        <div class="step-details">
+          <ul>
+            <li>ทีม IT จะทำการเตรียม Notebook เครื่องใหม่ พร้อมตั้งค่าโปรแกรมพื้นฐานต่างๆ</li>
+            <li>ใช้ระยะเวลาดำเนินการตามคิว หากเสร็จเรียบร้อยแล้ว สถานะของคุณจะเปลี่ยนเป็น <strong>"พร้อมนัดหมายรับเครื่อง"</strong></li>
+            <li>คุณสามารถเข้ามาเช็คสถานะได้เรื่อยๆ ที่หน้า <strong>"นัดหมายรับเครื่อง"</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-card step-3">
+      <div class="step-number">3</div>
+      <div class="step-content">
+        <h2 class="step-title">เลือกวันและเวลานัดหมายรับเครื่อง</h2>
+        <p class="step-desc">
+          เมื่อเครื่องใหม่ของคุณพร้อมใช้งานแล้ว คุณสามารถเข้ามาเลือกวันและเวลาที่คุณสะดวกเพื่อนำเครื่องเก่ามาเปลี่ยนรับเครื่องใหม่ได้เลย
+        </p>
+        <div class="step-details">
+          <strong>วิธีการนัดหมาย:</strong>
+          <ul>
+            <li>ไปที่หน้า "นัดหมายรับเครื่อง" (ปุ่มด้านล่าง)</li>
+            <li>พิมพ์ชื่อของคุณ (ภาษาอังกฤษ) เพื่อค้นหา</li>
+            <li>หากเครื่องพร้อมแล้ว ระบบจะแสดงปฏิทินให้เลือกวันที่</li>
+            <li>เลือกช่วงเวลาที่สะดวก (เปิดรับคิว 09:00 - 16:30 น.)</li>
+            <li>กดยืนยันการนัดหมาย เป็นอันเสร็จสิ้น! รอรับเครื่องตามเวลาที่กำหนดได้เลย</li>
+          </ul>
+        </div>
+        <a href="appointment.html" class="btn-action">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M19 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          ไปที่หน้านัดหมายรับเครื่อง
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+</body>
+</html>

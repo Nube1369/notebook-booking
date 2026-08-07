@@ -107,9 +107,11 @@ const statTotal = document.getElementById('stat-total');
 const statPending = document.getElementById('stat-pending');
 const statCompleted = document.getElementById('stat-completed');
 const statScheduled = document.getElementById('stat-scheduled');
+const statDelivered = document.getElementById('stat-delivered');
 const countPending = document.getElementById('count-pending');
 const countCompleted = document.getElementById('count-completed');
 const countScheduled = document.getElementById('count-scheduled');
+const countDelivered = document.getElementById('count-delivered');
 
 // New UI Refs
 const btnExport = document.getElementById('btn-export');
@@ -127,8 +129,17 @@ const STATUS_COLORS = {
   in_progress: { bg: '#3b82f6', border: '#2563eb', text: '#ffffff' },
   completed:   { bg: '#10b981', border: '#059669', text: '#ffffff' },
   scheduled:   { bg: '#6366f1', border: '#4f46e5', text: '#ffffff' },
+  delivered:   { bg: '#14b8a6', border: '#0d9488', text: '#ffffff' },
   cancelled:   { bg: '#ef4444', border: '#dc2626', text: '#ffffff' },
 };
+
+// ── Delivered Modal refs ─────────────────────
+const modalOverlayDelivered = document.getElementById('modal-overlay-delivered');
+const modalNameDeliveredEl = document.getElementById('modal-name-delivered');
+const btnModalCancelDelivered = document.getElementById('btn-modal-cancel-delivered');
+const btnModalConfirmDelivered = document.getElementById('btn-modal-confirm-delivered');
+let confirmDeliveredId = null;
+let confirmDeliveredName = null;
 
 // ── Tab switching ────────────────────────────
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -151,8 +162,12 @@ btnRefresh.addEventListener('click', fetchAll);
 // ── Modal events ─────────────────────────────
 btnModalCancel.addEventListener('click', closeModal);
 btnModalConfirm.addEventListener('click', confirmDone);
-btnModalConfirm.addEventListener('click', confirmDone);
 modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+
+// ── Delivered Modal events ────────────────────
+btnModalCancelDelivered.addEventListener('click', closeDeliveredModal);
+btnModalConfirmDelivered.addEventListener('click', confirmDelivered);
+modalOverlayDelivered.addEventListener('click', (e) => { if (e.target === modalOverlayDelivered) closeDeliveredModal(); });
 
 // ── View Mode Toggling ───────────────────────
 btnViewGrid.addEventListener('click', () => switchView('grid'));
@@ -191,12 +206,14 @@ function exportToExcel() {
     'in_progress': 'กำลังดำเนินการ',
     'completed':   'เสร็จแล้ว',
     'scheduled':   'นัดหมายแล้ว',
+    'delivered':   'เสร็จเรียบร้อย',
     'cancelled':   'ยกเลิก'
   };
   const tabMap = {
     'pending':   'รอดำเนินการ',
     'completed': 'เสร็จแล้ว',
-    'scheduled': 'นัดหมายแล้ว'
+    'scheduled': 'นัดหมายแล้ว',
+    'delivered': 'เสร็จเรียบร้อย'
   };
 
   // Build rows
@@ -296,10 +313,12 @@ function getCalendarEvents() {
   if (currentTab === 'pending')   source = allBookings.filter(b => b.status === 'pending' || b.status === 'in_progress');
   if (currentTab === 'completed') source = allBookings.filter(b => b.status === 'completed');
   if (currentTab === 'scheduled') source = allBookings.filter(b => b.status === 'scheduled');
+  if (currentTab === 'delivered') source = allBookings.filter(b => b.status === 'delivered');
 
   const statusLabels = {
     pending: 'รอดำเนินการ', in_progress: 'กำลังดำเนินการ',
     completed: 'เสร็จแล้ว', scheduled: 'นัดหมายแล้ว',
+    delivered: 'เสร็จเรียบร้อย',
   };
 
   return source.map(b => {
@@ -338,7 +357,7 @@ function getCalendarEvents() {
 function handleEventClick(info) {
   const ep = info.event.extendedProps;
   const colors = STATUS_COLORS[ep.status] || STATUS_COLORS.pending;
-  const statusEmojis = { pending:'⏳', in_progress:'🔄', completed:'✅', scheduled:'📅' };
+  const statusEmojis = { pending:'⏳', in_progress:'🔄', completed:'✅', scheduled:'📅', delivered:'🏁' };
   const emo = statusEmojis[ep.status] || '📋';
 
   document.getElementById('ep-name').textContent    = info.event.title;
@@ -434,15 +453,18 @@ function updateStats() {
   const pending = allBookings.filter(b => b.status === 'pending' || b.status === 'in_progress').length;
   const completed = allBookings.filter(b => b.status === 'completed').length;
   const scheduled = allBookings.filter(b => b.status === 'scheduled').length;
+  const delivered = allBookings.filter(b => b.status === 'delivered').length;
 
   animateNumber(statTotal, total);
   animateNumber(statPending, pending);
   animateNumber(statCompleted, completed);
   animateNumber(statScheduled, scheduled);
+  animateNumber(statDelivered, delivered);
 
   countPending.textContent = pending;
   countCompleted.textContent = completed;
   countScheduled.textContent = scheduled;
+  countDelivered.textContent = delivered;
 }
 
 function animateNumber(el, target) {
@@ -465,6 +487,7 @@ function getFiltered() {
     if (currentTab === 'pending' && b.status !== 'pending' && b.status !== 'in_progress') return false;
     if (currentTab === 'completed' && b.status !== 'completed') return false;
     if (currentTab === 'scheduled' && b.status !== 'scheduled') return false;
+    if (currentTab === 'delivered' && b.status !== 'delivered') return false;
     if (search) {
       return (
         b.full_name?.toLowerCase().includes(search) ||
@@ -485,6 +508,7 @@ function renderBookings() {
       pending: { icon: '🎉', title: 'ไม่มีรายการที่รอดำเนินการ', sub: 'ทุกการจองได้รับการดูแลแล้ว' },
       completed: { icon: '📭', title: 'ยังไม่มีรายการที่เสร็จแล้ว', sub: 'เมื่อดำเนินการเสร็จ กด "เสร็จแล้ว" ในแท็บแรก' },
       scheduled: { icon: '📅', title: 'ยังไม่มีนัดหมาย', sub: 'นัดหมายจะแสดงที่นี่หลังจากกำหนดเวลาในหน้า "นัดหมาย"' },
+      delivered: { icon: '🏁', title: 'ยังไม่มีรายการที่เสร็จเรียบร้อย', sub: 'เมื่อคืนเครื่องแล้ว กด "คืนงานเสร็จ" ในแท็บ "นัดหมายแล้ว"' },
     };
     const m = msgs[currentTab] || msgs.pending;
     grid.innerHTML = `
@@ -502,6 +526,10 @@ function renderBookings() {
   grid.querySelectorAll('.btn-done').forEach(btn => {
     btn.addEventListener('click', () => openModal(btn.dataset.id, btn.dataset.name));
   });
+  // Attach delivered button events
+  grid.querySelectorAll('.btn-delivered').forEach(btn => {
+    btn.addEventListener('click', () => openDeliveredModal(btn.dataset.id, btn.dataset.name));
+  });
 }
 
 function renderCard(b) {
@@ -510,6 +538,7 @@ function renderCard(b) {
     in_progress: '<span class="status-badge status-badge--in_progress"><span class="status-dot"></span>กำลังดำเนินการ</span>',
     completed: '<span class="status-badge status-badge--completed"><span class="status-dot"></span>เสร็จแล้ว</span>',
     scheduled: '<span class="status-badge status-badge--scheduled"><span class="status-dot"></span>นัดหมายแล้ว</span>',
+    delivered: '<span class="status-badge status-badge--delivered"><span class="status-dot"></span>เสร็จเรียบร้อย</span>',
   };
 
   const floorTags = (b.printer_floors || [])
@@ -537,6 +566,14 @@ function renderCard(b) {
     footer = `
       <div class="appt-info-badge">
         📅 ${formatApptDate(b.appointment_date)} เวลา ${b.appointment_time} น.
+      </div>
+      <button class="btn-delivered" data-id="${b.id}" data-name="${escapeHtml(b.full_name)}">
+        🏁 คืนงานเสร็จ
+      </button>`;
+  } else if (b.status === 'delivered') {
+    footer = `
+      <div class="appt-info-badge" style="background:#f0fdfa;color:#0f766e;">
+        🏁 เสร็จเรียบร้อยแล้ว
       </div>`;
   }
 
@@ -629,6 +666,61 @@ async function confirmDone() {
   } finally {
     btnModalConfirm.disabled = false;
     btnModalConfirm.textContent = origText;
+  }
+}
+
+// ── Delivered Modal ──────────────────────────
+function openDeliveredModal(id, name) {
+  confirmDeliveredId = id;
+  confirmDeliveredName = name;
+  modalNameDeliveredEl.textContent = name;
+  modalOverlayDelivered.classList.add('show');
+}
+
+function closeDeliveredModal() {
+  modalOverlayDelivered.classList.remove('show');
+  confirmDeliveredId = null;
+  confirmDeliveredName = null;
+}
+
+async function confirmDelivered() {
+  if (!confirmDeliveredId) return;
+  const origText = btnModalConfirmDelivered.textContent;
+  btnModalConfirmDelivered.disabled = true;
+  btnModalConfirmDelivered.textContent = 'กำลังบันทึก...';
+
+  try {
+    const numericId = Number(confirmDeliveredId);
+    const { data, error } = await db
+      .from('bookings')
+      .update({ status: 'delivered' })
+      .eq('id', numericId)
+      .select();
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      showToast('⚠️ อัปเดตไม่สำเร็จ — RLS อาจบล็อกอยู่', 'error');
+      return;
+    }
+
+    closeDeliveredModal();
+    showToast('🏁 มาร์คว่าเสร็จเรียบร้อยสำเร็จ!', 'success');
+
+    // Switch to delivered tab
+    currentTab = 'delivered';
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('active');
+      if (b.dataset.tab === 'delivered') b.classList.add('active');
+    });
+
+    await fetchAll();
+  } catch (err) {
+    console.error('❌ confirmDelivered error:', err);
+    showToast('เกิดข้อผิดพลาด: ' + (err.message || JSON.stringify(err)), 'error');
+  } finally {
+    btnModalConfirmDelivered.disabled = false;
+    btnModalConfirmDelivered.textContent = origText;
   }
 }
 

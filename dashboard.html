@@ -85,6 +85,7 @@
       --primary: #2563eb; --primary-dark: #1d4ed8;
       --success: #10b981; --warning: #f59e0b;
       --danger: #ef4444; --indigo: #6366f1;
+      --teal: #14b8a6;
       --bg: #f0f4ff; --card-bg: rgba(255,255,255,0.92);
       --border: rgba(255,255,255,0.6);
       --text: #1e293b; --text-muted: #64748b;
@@ -113,12 +114,12 @@
     .page-subtitle{font-size:.85rem;color:var(--text-muted);margin-top:.25rem;}
 
     /* STATS */
-    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+    .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem;}
     .stat-card{background:var(--card-bg);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:1rem;transition:transform .2s,box-shadow .2s;}
     .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(37,99,235,0.12);}
     .stat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
     .stat-icon--blue{background:#eff6ff;} .stat-icon--amber{background:#fffbeb;}
-    .stat-icon--green{background:#f0fdf4;} .stat-icon--indigo{background:#eef2ff;}
+    .stat-icon--green{background:#f0fdf4;} .stat-icon--indigo{background:#eef2ff;} .stat-icon--teal{background:#f0fdfa;}
     .stat-value{font-size:2rem;font-weight:800;line-height:1;margin-bottom:.2rem;font-family:'Inter',sans-serif;}
     .stat-label{font-size:.75rem;color:var(--text-muted);font-weight:500;}
 
@@ -194,10 +195,12 @@
     .tab-btn[data-tab="pending"].active{color:#92400e;}
     .tab-btn[data-tab="completed"].active{color:#065f46;}
     .tab-btn[data-tab="scheduled"].active{color:#3730a3;}
+    .tab-btn[data-tab="delivered"].active{color:#0f766e;}
     .tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:10px;font-size:.7rem;font-weight:700;background:#f1f5f9;color:#64748b;}
     .tab-btn[data-tab="pending"].active .tab-count{background:#fef3c7;color:#92400e;}
     .tab-btn[data-tab="completed"].active .tab-count{background:#d1fae5;color:#065f46;}
     .tab-btn[data-tab="scheduled"].active .tab-count{background:#e0e7ff;color:#3730a3;}
+    .tab-btn[data-tab="delivered"].active .tab-count{background:#ccfbf1;color:#0f766e;}
 
     /* CARDS GRID */
     .bookings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:1rem;}
@@ -214,6 +217,7 @@
     .status-badge--in_progress{background:#dbeafe;color:#1e40af;}
     .status-badge--completed{background:#d1fae5;color:#065f46;}
     .status-badge--scheduled{background:#e0e7ff;color:#3730a3;}
+    .status-badge--delivered{background:#ccfbf1;color:#0f766e;}
     .status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;animation:pulse 2s infinite;}
     @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
     .status-badge--completed .status-dot,.status-badge--scheduled .status-dot{animation:none;}
@@ -240,6 +244,9 @@
     .btn-done:active{transform:translateY(0);}
     .btn-appt{display:inline-flex;align-items:center;gap:.4rem;padding:.575rem 1.125rem;background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;border:none;border-radius:10px;cursor:pointer;font-size:.825rem;font-family:var(--font);font-weight:600;text-decoration:none;transition:all .2s;white-space:nowrap;}
     .btn-appt:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(99,102,241,0.38);}
+    .btn-delivered{display:inline-flex;align-items:center;gap:.4rem;padding:.575rem 1.125rem;background:linear-gradient(135deg,#14b8a6,#0d9488);color:white;border:none;border-radius:10px;cursor:pointer;font-size:.825rem;font-family:var(--font);font-weight:600;transition:all .2s;white-space:nowrap;}
+    .btn-delivered:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(20,184,166,0.38);}
+    .btn-delivered:active{transform:translateY(0);}
 
     /* EMPTY STATE */
     .empty-state{text-align:center;padding:4rem 2rem;color:var(--text-muted);grid-column:1/-1;}
@@ -275,6 +282,7 @@
     @keyframes spin{to{transform:rotate(360deg);}}
     .spin{animation:spin 1s linear infinite;}
 
+    @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(3,1fr);}}
     @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
     @media(max-width:600px){.stats-grid{grid-template-columns:1fr 1fr;}.bookings-grid{grid-template-columns:1fr;}.container{padding:1rem;}.nav-links .nav-link span{display:none;}}
   </style>
@@ -368,6 +376,10 @@
         <div class="stat-icon stat-icon--indigo">📅</div>
         <div><div class="stat-value" id="stat-scheduled">—</div><div class="stat-label">นัดหมายแล้ว</div></div>
       </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon--teal">🏁</div>
+        <div><div class="stat-value" id="stat-delivered">—</div><div class="stat-label">เสร็จเรียบร้อย</div></div>
+      </div>
     </div>
 
     <!-- Toolbar -->
@@ -400,6 +412,9 @@
       <button class="tab-btn" data-tab="scheduled" id="tab-scheduled">
         📅 นัดหมายแล้ว <span class="tab-count" id="count-scheduled">0</span>
       </button>
+      <button class="tab-btn" data-tab="delivered" id="tab-delivered">
+        🏁 เสร็จเรียบร้อย <span class="tab-count" id="count-delivered">0</span>
+      </button>
       
       <div class="view-toggle-group">
         <button class="view-toggle-btn active" id="view-grid">🗂️ แบบการ์ด</button>
@@ -424,6 +439,7 @@
         <span class="cal-dot cal-dot--inprogress">🔄 กำลังดำเนินการ</span>
         <span class="cal-dot cal-dot--completed">✅ เสร็จแล้ว</span>
         <span class="cal-dot cal-dot--scheduled">📅 นัดหมายแล้ว</span>
+        <span class="cal-dot" style="background:#14b8a6;">🏁 เสร็จเรียบร้อย</span>
       </div>
       <div id="calendar"></div>
     </div>
@@ -463,7 +479,7 @@
 
   </main>
 
-  <!-- Confirm Modal -->
+  <!-- Confirm Modal (Pending → Completed) -->
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal">
       <div class="modal-icon">✅</div>
@@ -477,6 +493,24 @@
       <div class="modal-actions">
         <button class="btn-cancel-modal" id="btn-modal-cancel">ยกเลิก</button>
         <button class="btn-confirm-modal" id="btn-modal-confirm">✓ ยืนยัน เสร็จแล้ว</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal (Scheduled → Delivered) -->
+  <div class="modal-overlay" id="modal-overlay-delivered">
+    <div class="modal">
+      <div class="modal-icon">🏁</div>
+      <div class="modal-title">ยืนยันคืนงานเสร็จเรียบร้อย?</div>
+      <div class="modal-desc">
+        คุณต้องการมาร์คการจองของ<br/>
+        <span class="modal-name" id="modal-name-delivered"></span><br/>
+        ว่าคืนเครื่องและเสร็จเรียบร้อยแล้วใช่ไหม?<br/>
+        <small>รายการจะย้ายไปยังแท็บ "เสร็จเรียบร้อย"</small>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel-modal" id="btn-modal-cancel-delivered">ยกเลิก</button>
+        <button class="btn-confirm-modal" id="btn-modal-confirm-delivered" style="background:linear-gradient(135deg,#14b8a6,#0d9488);">🏁 ยืนยัน เสร็จเรียบร้อย</button>
       </div>
     </div>
   </div>

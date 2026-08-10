@@ -329,7 +329,12 @@ async function confirmAppointment() {
 async function checkSlotCapacity(dateStr) {
   if (!dateStr) return;
   const timeBtns = document.querySelectorAll('.time-btn');
+  const timeSection = document.querySelector('.time-section');
   
+  // Remove any previous notice
+  const existingNotice = document.getElementById('date-closed-notice');
+  if (existingNotice) existingNotice.remove();
+
   // Reset all buttons first
   timeBtns.forEach(btn => {
     btn.disabled = false;
@@ -338,7 +343,37 @@ async function checkSlotCapacity(dateStr) {
   });
 
   try {
-    // 1. Fetch bookings on this date that are scheduled or delivered
+    // 1. Fetch specific slot limits for this date
+    const { data: limits, error: lErr } = await db
+      .from('slot_limits')
+      .select('slot_time, max_capacity')
+      .eq('slot_date', dateStr);
+
+    if (lErr) throw lErr;
+
+    // ❌ If admin has NOT opened this date, block it
+    if (!limits || limits.length === 0) {
+      timeBtns.forEach(btn => {
+        btn.disabled = true;
+        btn.classList.add('full');
+      });
+      // Show a notice
+      const notice = document.createElement('div');
+      notice.id = 'date-closed-notice';
+      notice.style.cssText = 'margin-top:0.75rem;padding:0.75rem 1rem;background:#fef9c3;border:1px solid #fde68a;border-radius:10px;color:#92400e;font-size:0.875rem;font-weight:600;display:flex;align-items:center;gap:0.5rem;';
+      notice.innerHTML = '⚠️ วันที่นี้ยังไม่เปิดรับการจอง กรุณาเลือกวันที่อื่นหรือติดต่อเจ้าหน้าที่ IT';
+      if (timeSection) timeSection.appendChild(notice);
+      // Clear selected time
+      if (selectedTime) {
+        const selectedBtn = document.querySelector(`.time-btn[data-time="${selectedTime}"]`);
+        if (selectedBtn) selectedBtn.classList.remove('selected');
+        selectedTime = null;
+        checkCanConfirm();
+      }
+      return;
+    }
+
+    // 2. Fetch bookings on this date that are scheduled or delivered
     const { data: bookings, error: bErr } = await db
       .from('bookings')
       .select('appointment_time')
@@ -346,14 +381,6 @@ async function checkSlotCapacity(dateStr) {
       .in('status', ['scheduled', 'delivered']);
       
     if (bErr) throw bErr;
-
-    // 2. Fetch specific slot limits for this date
-    const { data: limits, error: lErr } = await db
-      .from('slot_limits')
-      .select('slot_time, max_capacity')
-      .eq('slot_date', dateStr);
-
-    if (lErr) throw lErr;
 
     // Build capacity map from limits
     const limitMap = {};
@@ -371,9 +398,14 @@ async function checkSlotCapacity(dateStr) {
     timeBtns.forEach(btn => {
       const t = btn.dataset.time;
       const count = countMap[t] || 0;
-      const limit = limitMap[t]; // undefined means no limit
+      const limit = limitMap[t]; // undefined means not in this date's configured slots
       
-      if (limit !== undefined && count >= limit) {
+      if (limit === undefined) {
+        // This time slot is not opened by admin for this date
+        btn.disabled = true;
+        btn.classList.add('full');
+        btn.innerHTML = `${t}<br><span style="font-size:0.6rem;">ไม่เปิด</span>`;
+      } else if (count >= limit) {
         btn.disabled = true;
         btn.classList.add('full');
         btn.innerHTML = `${t} <br><span style="font-size:0.65rem;">(เต็ม)</span>`;

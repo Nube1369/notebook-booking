@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workflow | IT Notebook Booking</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  
+  <!-- Mermaid.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --secondary: #10b981;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --font-th: 'Sarabun', sans-serif;
+      --font-en: 'Outfit', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-th);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    header {
+      background: linear-gradient(135deg, #4f46e5, #3730a3);
+      color: white;
+      padding: 4rem 2rem;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
+      border-bottom-left-radius: 40px;
+      border-bottom-right-radius: 40px;
+      margin-bottom: 3rem;
+    }
+
+    header h1 {
+      font-family: var(--font-en);
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .flow-section {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border);
+    }
+
+    .flow-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .flow-title.user-flow { color: #2563eb; }
+    .flow-title.admin-flow { color: #7c3aed; }
+    .flow-title.db-flow { color: #059669; }
+
+    .mermaid {
+      background: #f8fafc;
+      padding: 2rem;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .step-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .step-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .step-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+      border-color: #cbd5e1;
+    }
+
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      font-weight: 700;
+      font-family: var(--font-en);
+      margin-bottom: 1rem;
+    }
+
+    .step-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .step-desc {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .btn-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+      padding: 0.75rem 1.5rem;
+      background: white;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+
+    .btn-home:hover {
+      background: #f1f5f9;
+      color: var(--primary);
+    }
+
+    /* Database status pill */
+    .status-pill {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-family: var(--font-en);
+      font-weight: 700;
+      margin-top: 0.75rem;
+    }
+    .sp-pending { background: #fef9c3; color: #a16207; }
+    .sp-completed { background: #dbeafe; color: #1d4ed8; }
+    .sp-scheduled { background: #f3e8ff; color: #7e22ce; }
+    .sp-delivered { background: #d1fae5; color: #047857; }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>System Workflow ⚙️</h1>
+    <p>แผนผังและขั้นตอนการทำงานของระบบจองคิวเปลี่ยน Notebook (User vs Admin)</p>
+  </header>
+
+  <div class="container">
+    
+    <!-- OVERALL ARCHITECTURE -->
+    <div class="flow-section">
+      <h2 class="flow-title db-flow">🌐 1. ภาพรวมของระบบ (Overall Status Flow)</h2>
+      <p style="color:var(--text-muted); margin-bottom: 1rem;">การเปลี่ยนสถานะ (Status) ในฐานข้อมูล Supabase ระหว่างที่ผู้ใช้และแอดมินใช้งานระบบ</p>
+      
+      <div class="mermaid">
+        graph LR
+          A[pending<br>(รอดำเนินการ)] -->|แอดมินกด เสร็จแล้ว| B(completed<br>รอผู้ใช้นัดหมาย)
+          B -->|ผู้ใช้จองเวลา| C(scheduled<br>นัดหมายแล้ว)
+          C -->|แอดมินกด คืนเครื่อง| D((delivered<br>เสร็จเรียบร้อย))
+          
+          style A fill:#fef9c3,stroke:#a16207,color:#a16207,stroke-width:2px
+          style B fill:#dbeafe,stroke:#1d4ed8,color:#1d4ed8,stroke-width:2px
+          style C fill:#f3e8ff,stroke:#7e22ce,color:#7e22ce,stroke-width:2px
+          style D fill:#d1fae5,stroke:#047857,color:#047857,stroke-width:2px
+      </div>
+    </div>
+
+    <!-- USER FLOW -->
+    <div class="flow-section">
+      <h2 class="flow-title user-flow">🧑‍💻 2. ฝั่งพนักงาน (User Workflow)</h2>
+      
+      <div class="step-grid">
+        <div class="step-card">
+          <div class="step-num" style="background:#2563eb;">1</div>
+          <h3 class="step-title">ตรวจสอบสถานะ (Search)</h3>
+          <p class="step-desc">พนักงานสแกน QR Code หรือเข้าเว็บ กรอกเบอร์โทรหรือรหัสพนักงานเพื่อดูสถานะเครื่องของตัวเอง</p>
+          <div class="status-pill sp-pending">status: pending</div>
+        </div>
+        
+        <div class="step-card">
+          <div class="step-num" style="background:#2563eb;">2</div>
+          <h3 class="step-title">จองคิว (Appointment)</h3>
+          <p class="step-desc">หาก IT ทำเครื่องเสร็จแล้ว พนักงานจะเห็นปุ่ม "นัดหมายรับเครื่อง" และสามารถเลือกวัน/เวลาที่สะดวกได้ (ระบบจะเช็คโควต้าคิวว่าเต็มหรือยัง)</p>
+          <div class="status-pill sp-completed">status: completed</div>
+        </div>
+        
+        <div class="step-card">
+          <div class="step-num" style="background:#2563eb;">3</div>
+          <h3 class="step-title">ยืนยันและรับเครื่อง (Done)</h3>
+          <p class="step-desc">พนักงานได้รับใบยืนยันคิวบนหน้าจอ และนำไปโชว์ให้ IT ดูเพื่อรับเครื่องตามวันและเวลาที่จองไว้</p>
+          <div class="status-pill sp-scheduled">status: scheduled</div>
+        </div>
+      </div>
+      
+      <div class="mermaid">
+        sequenceDiagram
+          actor User as พนักงาน (User)
+          participant UI as หน้าเว็บ (index/appointment)
+          participant DB as ฐานข้อมูล
+          
+          User->>UI: ค้นหาด้วยรหัส/เบอร์
+          UI->>DB: Query ข้อมูล
+          DB-->>UI: คืนค่าสถานะปัจจุบัน
+          
+          alt สถานะ = completed
+            UI-->>User: แสดงปุ่ม "นัดหมายรับเครื่อง"
+            User->>UI: เลือกวัน/เวลา
+            UI->>DB: เช็ค slot_limits ว่าคิวเต็มไหม?
+            DB-->>UI: ไม่เต็ม
+            UI->>DB: อัปเดต status เป็น scheduled
+            UI-->>User: แสดงหน้ายืนยันนัดหมายสำเร็จ
+          else สถานะ = pending
+            UI-->>User: แสดงข้อความ "อยู่ระหว่างดำเนินการ"
+          end
+      </div>
+    </div>
+
+    <!-- ADMIN FLOW -->
+    <div class="flow-section">
+      <h2 class="flow-title admin-flow">👨‍🔧 3. ฝั่งเจ้าหน้าที่ไอที (Admin / Dashboard Workflow)</h2>
+      
+      <div class="step-grid">
+        <div class="step-card">
+          <div class="step-num" style="background:#7c3aed;">1</div>
+          <h3 class="step-title">ตั้งค่าคิว (Settings)</h3>
+          <p class="step-desc">แอดมินกำหนดวันและเวลาที่สามารถมารับเครื่องได้ พร้อมใส่ "จำกัดจำนวนคิว (Slot Limits)" ของแต่ละรอบเวลา</p>
+        </div>
+        
+        <div class="step-card">
+          <div class="step-num" style="background:#7c3aed;">2</div>
+          <h3 class="step-title">เตรียมเครื่อง (In Progress)</h3>
+          <p class="step-desc">แอดมินดูรายชื่อในแท็บ "รอดำเนินการ" เมื่อ Backup และเตรียมเครื่องเสร็จ กดปุ่ม <b>"เสร็จแล้ว"</b></p>
+        </div>
+        
+        <div class="step-card">
+          <div class="step-num" style="background:#7c3aed;">3</div>
+          <h3 class="step-title">ตรวจสอบคิว (Calendar)</h3>
+          <p class="step-desc">แอดมินดูรายชื่อพนักงานที่นัดหมายไว้ผ่าน "ปฏิทิน" หรือแท็บ "นัดหมายแล้ว" เพื่อจัดเตรียมเครื่องให้ตรงเวลา</p>
+        </div>
+        
+        <div class="step-card">
+          <div class="step-num" style="background:#7c3aed;">4</div>
+          <h3 class="step-title">ส่งมอบ (Delivered)</h3>
+          <p class="step-desc">เมื่อพนักงานมารับเครื่อง แอดมินกดปุ่ม <b>"คืนงานเสร็จ"</b> เพื่อปิด Job งานอย่างสมบูรณ์</p>
+        </div>
+      </div>
+      
+      <div class="mermaid">
+        sequenceDiagram
+          actor Admin as เจ้าหน้าที่ (Admin)
+          participant Dash as แดชบอร์ด (Dashboard)
+          participant DB as ฐานข้อมูล
+          
+          Admin->>Dash: เพิ่มจำนวนจำกัดคิวแต่ละวัน
+          Dash->>DB: Upsert ในตาราง slot_limits
+          
+          Admin->>Dash: ดูรายชื่อรอดำเนินการ (pending)
+          Dash-->>Admin: แสดงการ์ดรายชื่อพนักงาน
+          
+          Admin->>Dash: กดปุ่ม "เสร็จแล้ว"
+          Dash->>DB: อัปเดตสถานะเป็น completed
+          
+          Note over Admin, DB: พนักงานจองเวลาเข้ามา (สถานะเปลี่ยนเป็น scheduled)
+          
+          Admin->>Dash: ดูรายชื่อแท็บ "นัดหมายแล้ว" หรือ "ปฏิทิน"
+          Dash-->>Admin: แสดงตารางคิวมารับเครื่อง
+          
+          Admin->>Dash: ส่งมอบเครื่องเสร็จ กด "คืนงานเสร็จ"
+          Dash->>DB: อัปเดตสถานะเป็น delivered
+      </div>
+    </div>
+
+    <center>
+      <a href="index.html" class="btn-home">⬅️ กลับไปหน้าหลัก (Home)</a>
+      <a href="dashboard.html" class="btn-home" style="margin-left: 1rem;">⚙️ ไปหน้า Dashboard</a>
+    </center>
+  </div>
+
+  <script>
+    mermaid.initialize({ 
+      startOnLoad: true, 
+      theme: 'base',
+      themeVariables: {
+        fontFamily: 'Sarabun',
+        primaryColor: '#eef2ff',
+        primaryTextColor: '#1e293b',
+        primaryBorderColor: '#cbd5e1',
+        lineColor: '#94a3b8',
+        secondaryColor: '#f8fafc'
+      }
+    });
+  </script>
+</body>
+</html>

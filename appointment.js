@@ -8,10 +8,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ── Time Slots ────────────────────────────────
+// ── Time Slots (ต้องตรงกับ DASH_TIME_SLOTS ใน dashboard.js) ────────────
 const TIME_SLOTS = [
   '09:00', '09:30', '10:00', '10:30',
-  '11:00', '11:30', '12:00', '12:30',
+  '11:00', '11:30',
   '13:00', '13:30', '14:00', '14:30',
   '15:00', '15:30', '16:00', '16:30',
 ];

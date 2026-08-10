@@ -535,7 +535,7 @@
           <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
             <div style="display:flex; align-items:center; gap:0.5rem;">
               <label for="filter-limit-date" style="font-size:0.875rem; color:var(--text-muted); font-weight:600;">ค้นหาวันที่:</label>
-              <input type="date" id="filter-limit-date" class="field-input" style="height:36px; padding:0 0.5rem; width:140px; font-size:0.875rem;" onchange="loadLimits()">
+              <input type="date" id="filter-limit-date" class="field-input" style="height:36px; padding:0 0.5rem; width:140px; font-size:0.875rem;" onchange="loadLimits()" oninput="loadLimits()">
               <button onclick="document.getElementById('filter-limit-date').value=''; loadLimits();" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.8rem;text-decoration:underline;">ล้าง</button>
             </div>
             <button id="btn-delete-selected-limits" style="display:none;" class="btn-delete-limit">🗑️ ลบที่เลือก (<span id="selected-limits-count">0</span>)</button>

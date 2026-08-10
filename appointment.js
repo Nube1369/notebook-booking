@@ -403,8 +403,8 @@ async function checkSlotCapacity(dateStr) {
       if (limit === undefined) {
         // This time slot is not opened by admin for this date
         btn.disabled = true;
-        btn.classList.add('full');
-        btn.innerHTML = `${t}<br><span style="font-size:0.6rem;">ไม่เปิด</span>`;
+        btn.classList.add('closed');
+        btn.innerHTML = `${t}<br><span style="font-size:0.65rem;">ไม่เปิด</span>`;
       } else if (count >= limit) {
         btn.disabled = true;
         btn.classList.add('full');

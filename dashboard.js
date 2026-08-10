@@ -811,31 +811,72 @@ settingsForm.addEventListener('submit', async (e) => {
 });
 
 async function loadLimits() {
-  limitsTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:2rem;">กำลังโหลด...</td></tr>';
+  limitsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem;">กำลังโหลด...</td></tr>';
   try {
     const { data, error } = await db.from('slot_limits').select('*').order('slot_date', { ascending: true }).order('slot_time', { ascending: true });
     if (error) throw error;
     
     if (!data || data.length === 0) {
-      limitsTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:2rem; color:#64748b;">ยังไม่มีการตั้งค่าจำกัดคิว</td></tr>';
+      limitsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; color:#64748b;">ยังไม่มีการตั้งค่าจำกัดคิว</td></tr>';
       return;
     }
     
-    limitsTbody.innerHTML = data.map(item => `
+    // Fetch bookings to count
+    const limitDates = [...new Set(data.map(d => d.slot_date))];
+    const { data: bookings, error: bErr } = await db
+      .from('bookings')
+      .select('appointment_date, appointment_time')
+      .in('appointment_date', limitDates)
+      .in('status', ['scheduled', 'delivered']);
+    
+    if (bErr) throw bErr;
+
+    // Count bookings per date & time
+    const countMap = {};
+    bookings.forEach(b => {
+      const key = b.appointment_date + '_' + b.appointment_time;
+      countMap[key] = (countMap[key] || 0) + 1;
+    });
+
+    limitsTbody.innerHTML = data.map(item => {
+      const bookedCount = countMap[item.slot_date + '_' + item.slot_time] || 0;
+      const dateDisplay = new Date(item.slot_date + 'T00:00:00').toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+      return `
       <tr>
-        <td>${formatDate(item.slot_date)}</td>
+        <td>${dateDisplay}</td>
         <td>${item.slot_time} น.</td>
-        <td><strong>${item.max_capacity}</strong> คน</td>
+        <td>
+          <input type="number" min="1" value="${item.max_capacity}" 
+                 onchange="updateLimitCapacity('${item.id}', this.value)" 
+                 class="limit-inline-input"> คน
+        </td>
+        <td><strong style="color: ${bookedCount >= item.max_capacity ? '#ef4444' : '#10b981'}">${bookedCount}</strong> / ${item.max_capacity}</td>
         <td style="text-align:right;">
           <button class="btn-delete-limit" onclick="deleteLimit('${item.id}')">ลบ</button>
         </td>
       </tr>
-    `).join('');
+      `;
+    }).join('');
   } catch (err) {
     console.error(err);
-    limitsTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:2rem; color:#ef4444;">เกิดข้อผิดพลาดในการดึงข้อมูล</td></tr>';
+    limitsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; color:#ef4444;">เกิดข้อผิดพลาดในการดึงข้อมูล</td></tr>';
   }
 }
+
+window.updateLimitCapacity = async function(id, newVal) {
+  try {
+    const val = parseInt(newVal, 10);
+    if (isNaN(val) || val < 1) return loadLimits();
+    const { error } = await db.from('slot_limits').update({ max_capacity: val }).eq('id', id);
+    if (error) throw error;
+    showToast('อัปเดตจำนวนคิวเรียบร้อย', 'success');
+    loadLimits();
+  } catch(err) {
+    console.error(err);
+    showToast('เกิดข้อผิดพลาดในการอัปเดต', 'error');
+    loadLimits();
+  }
+};
 
 window.deleteLimit = async function(id) {
   if (!confirm('ยืนยันการลบการตั้งค่านี้?')) return;

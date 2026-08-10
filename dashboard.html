@@ -217,6 +217,8 @@
     .limits-table td{padding:.875rem 1rem;border-top:1px solid #e2e8f0;color:var(--text);}
     .btn-delete-limit{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;padding:.35rem .75rem;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;transition:all .2s;}
     .btn-delete-limit:hover{background:#fee2e2;border-color:#f87171;}
+    .limit-inline-input{width:60px;padding:4px 6px;border:1px solid #cbd5e1;border-radius:4px;text-align:center;font-family:var(--font);font-weight:600;}
+    .limit-inline-input:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 2px rgba(37,99,235,0.15);}
     .tab-btn[data-tab="settings"].active{color:#475569;}
 
     /* CARDS GRID */
@@ -536,11 +538,12 @@
                 <th>วันที่</th>
                 <th>เวลา</th>
                 <th>จำนวนรับได้สูงสุด</th>
+                <th>จองแล้ว</th>
                 <th style="text-align:right;">จัดการ</th>
               </tr>
             </thead>
             <tbody id="limits-tbody">
-              <tr><td colspan="4" style="text-align:center; color:#64748b; padding:2rem;">กำลังโหลดข้อมูล...</td></tr>
+              <tr><td colspan="5" style="text-align:center; color:#64748b; padding:2rem;">กำลังโหลดข้อมูล...</td></tr>
             </tbody>
           </table>
         </div>

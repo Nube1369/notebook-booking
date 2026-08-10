@@ -811,13 +811,15 @@ settingsForm.addEventListener('submit', async (e) => {
 });
 
 async function loadLimits() {
-  limitsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem;">กำลังโหลด...</td></tr>';
+  limitsTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem;">กำลังโหลด...</td></tr>';
   try {
     const { data, error } = await db.from('slot_limits').select('*').order('slot_date', { ascending: true }).order('slot_time', { ascending: true });
     if (error) throw error;
     
     if (!data || data.length === 0) {
-      limitsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; color:#64748b;">ยังไม่มีการตั้งค่าจำกัดคิว</td></tr>';
+      limitsTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem; color:#64748b;">ยังไม่มีการตั้งค่าจำกัดคิว</td></tr>';
+      if(document.getElementById('chk-all-limits')) document.getElementById('chk-all-limits').checked = false;
+      if(window.updateSelectedLimitsCount) window.updateSelectedLimitsCount();
       return;
     }
     
@@ -843,6 +845,7 @@ async function loadLimits() {
       const dateDisplay = new Date(item.slot_date + 'T00:00:00').toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
       return `
       <tr>
+        <td style="text-align: center;"><input type="checkbox" class="chk-limit" value="${item.id}" onchange="updateSelectedLimitsCount()"></td>
         <td>${dateDisplay}</td>
         <td>${item.slot_time} น.</td>
         <td>
@@ -857,9 +860,13 @@ async function loadLimits() {
       </tr>
       `;
     }).join('');
+    
+    if(document.getElementById('chk-all-limits')) document.getElementById('chk-all-limits').checked = false;
+    if(window.updateSelectedLimitsCount) window.updateSelectedLimitsCount();
+    
   } catch (err) {
     console.error(err);
-    limitsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; color:#ef4444;">เกิดข้อผิดพลาดในการดึงข้อมูล</td></tr>';
+    limitsTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem; color:#ef4444;">เกิดข้อผิดพลาดในการดึงข้อมูล</td></tr>';
   }
 }
 
@@ -912,6 +919,54 @@ document.getElementById('btn-logout').addEventListener('click', () => {
     setTimeout(() => loginUserEl.focus(), 300);
   }
 });
+
+// ── Bulk Delete Limits ────────────────────────
+const chkAllLimits = document.getElementById('chk-all-limits');
+const btnDeleteSelected = document.getElementById('btn-delete-selected-limits');
+const selectedCountEl = document.getElementById('selected-limits-count');
+
+if (chkAllLimits) {
+  chkAllLimits.addEventListener('change', (e) => {
+    document.querySelectorAll('.chk-limit').forEach(chk => chk.checked = e.target.checked);
+    if(window.updateSelectedLimitsCount) window.updateSelectedLimitsCount();
+  });
+}
+
+window.updateSelectedLimitsCount = function() {
+  if (!btnDeleteSelected) return;
+  const count = document.querySelectorAll('.chk-limit:checked').length;
+  if (count > 0) {
+    btnDeleteSelected.style.display = 'inline-flex';
+    if(selectedCountEl) selectedCountEl.textContent = count;
+  } else {
+    btnDeleteSelected.style.display = 'none';
+  }
+};
+
+if (btnDeleteSelected) {
+  btnDeleteSelected.addEventListener('click', async () => {
+    const selectedIds = Array.from(document.querySelectorAll('.chk-limit:checked')).map(chk => chk.value);
+    if (selectedIds.length === 0) return;
+    if (!confirm(`ยืนยันการลบการตั้งค่าที่เลือกจำนวน ${selectedIds.length} รายการ?`)) return;
+    
+    btnDeleteSelected.innerHTML = '⏳ กำลังลบ...';
+    btnDeleteSelected.disabled = true;
+    try {
+      const { error } = await db.from('slot_limits').delete().in('id', selectedIds);
+      if (error) throw error;
+      showToast('ลบรายการที่เลือกเรียบร้อย', 'success');
+      loadLimits();
+    } catch(err) {
+      console.error(err);
+      showToast('เกิดข้อผิดพลาดในการลบ', 'error');
+    } finally {
+      btnDeleteSelected.innerHTML = `🗑️ ลบที่เลือก (<span id="selected-limits-count">0</span>)`;
+      btnDeleteSelected.disabled = false;
+      btnDeleteSelected.style.display = 'none';
+      if(chkAllLimits) chkAllLimits.checked = false;
+    }
+  });
+}
 
 // ── Init: fetchAll is called after successful login ──
 // (if already authenticated, it's called by the auth check above)

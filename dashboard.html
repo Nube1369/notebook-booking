@@ -530,11 +530,15 @@
 
         <hr style="border: none; border-top: 1px dashed var(--border); margin: 2rem 0;">
         
-        <h3 style="margin-bottom: 1rem; color: var(--text);">📋 รายการตั้งค่าคิว (ปัจจุบัน)</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3 style="margin:0; color:var(--text);">📋 รายการตั้งค่าคิว (ปัจจุบัน)</h3>
+          <button id="btn-delete-selected-limits" style="display:none;" class="btn-delete-limit">🗑️ ลบที่เลือก (<span id="selected-limits-count">0</span>)</button>
+        </div>
         <div class="limits-table-wrapper">
           <table class="limits-table">
             <thead>
               <tr>
+                <th style="width: 40px; text-align: center;"><input type="checkbox" id="chk-all-limits"></th>
                 <th>วันที่</th>
                 <th>เวลา</th>
                 <th>จำนวนรับได้สูงสุด</th>
@@ -543,7 +547,7 @@
               </tr>
             </thead>
             <tbody id="limits-tbody">
-              <tr><td colspan="5" style="text-align:center; color:#64748b; padding:2rem;">กำลังโหลดข้อมูล...</td></tr>
+              <tr><td colspan="6" style="text-align:center; color:#64748b; padding:2rem;">กำลังโหลดข้อมูล...</td></tr>
             </tbody>
           </table>
         </div>

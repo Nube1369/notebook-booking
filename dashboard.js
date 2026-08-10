@@ -11,6 +11,15 @@ const ADMIN_USER = 'admin';
 const ADMIN_PASS = 'pcadmin02';
 const SESSION_KEY = 'nb_admin_auth';
 
+// ── Time Slots (Single source of truth) ──────
+// ถ้าต้องการเพิ่ม/ลดเวลา แก้ที่นี่ที่เดียวเลย (dashboard.js และ appointment.js)
+const DASH_TIME_SLOTS = [
+  '09:00', '09:30', '10:00', '10:30',
+  '11:00', '11:30',
+  '13:00', '13:30', '14:00', '14:30',
+  '15:00', '15:30', '16:00', '16:30',
+];
+
 // ── Login Gate ───────────────────────────────
 const loginOverlay = document.getElementById('login-overlay');
 const loginForm    = document.getElementById('login-form');
@@ -23,6 +32,22 @@ const btnLoginEl   = document.getElementById('btn-login');
 function isAuthenticated() {
   return sessionStorage.getItem(SESSION_KEY) === 'true';
 }
+
+// \u2500\u2500 Populate Time Select Options \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// Generate <option> from DASH_TIME_SLOTS so there's only one place to edit
+function populateTimeSelects() {
+  const startSel = document.getElementById('limit-time-start');
+  const endSel   = document.getElementById('limit-time-end');
+  if (!startSel || !endSel) return;
+
+  DASH_TIME_SLOTS.forEach(t => {
+    startSel.appendChild(new Option(t, t));
+    const opt = new Option(t, t);
+    if (t === '16:30') opt.selected = true;
+    endSel.appendChild(opt);
+  });
+}
+populateTimeSelects();
 
 function showDashboard() {
   loginOverlay.classList.add('hidden');

@@ -813,7 +813,14 @@ settingsForm.addEventListener('submit', async (e) => {
 async function loadLimits() {
   limitsTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem;">กำลังโหลด...</td></tr>';
   try {
-    const { data, error } = await db.from('slot_limits').select('*').order('slot_date', { ascending: true }).order('slot_time', { ascending: true });
+    let query = db.from('slot_limits').select('*').order('slot_date', { ascending: true }).order('slot_time', { ascending: true });
+    
+    const filterDate = document.getElementById('filter-limit-date')?.value;
+    if (filterDate) {
+      query = query.eq('slot_date', filterDate);
+    }
+    
+    const { data, error } = await query;
     if (error) throw error;
     
     if (!data || data.length === 0) {

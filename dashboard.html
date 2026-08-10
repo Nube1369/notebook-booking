@@ -530,9 +530,16 @@
 
         <hr style="border: none; border-top: 1px dashed var(--border); margin: 2rem 0;">
         
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:1rem;">
           <h3 style="margin:0; color:var(--text);">📋 รายการตั้งค่าคิว (ปัจจุบัน)</h3>
-          <button id="btn-delete-selected-limits" style="display:none;" class="btn-delete-limit">🗑️ ลบที่เลือก (<span id="selected-limits-count">0</span>)</button>
+          <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <label for="filter-limit-date" style="font-size:0.875rem; color:var(--text-muted); font-weight:600;">ค้นหาวันที่:</label>
+              <input type="date" id="filter-limit-date" class="field-input" style="height:36px; padding:0 0.5rem; width:140px; font-size:0.875rem;" onchange="loadLimits()">
+              <button onclick="document.getElementById('filter-limit-date').value=''; loadLimits();" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.8rem;text-decoration:underline;">ล้าง</button>
+            </div>
+            <button id="btn-delete-selected-limits" style="display:none;" class="btn-delete-limit">🗑️ ลบที่เลือก (<span id="selected-limits-count">0</span>)</button>
+          </div>
         </div>
         <div class="limits-table-wrapper">
           <table class="limits-table">

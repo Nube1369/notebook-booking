@@ -7,64 +7,65 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --primary: #2563eb; 
-      --primary-dark: #1d4ed8;
-      --indigo: #6366f1;
-      --teal: #14b8a6;
-      --bg: #f0f4ff; 
-      --card-bg: rgba(255, 255, 255, 0.92);
-      --border: rgba(255, 255, 255, 0.6);
-      --text: #1e293b; 
-      --text-muted: #64748b;
-      --shadow: 0 8px 32px rgba(37,99,235,0.08);
-      --radius: 16px; 
-      --font: 'Sarabun', 'Inter', sans-serif;
+      --primary: #1D1D1F; 
+      --primary-dark: #000000;
+      --accent: #0071E3;
+      --teal: #30D158;
+      --bg: #F5F5F7; 
+      --card-bg: #FFFFFF;
+      --border: #D2D2D7;
+      --text: #1D1D1F; 
+      --text-muted: #86868B;
+      --shadow: 0 2px 8px rgba(0,0,0,0.06);
+      --radius: 20px; 
+      --font: 'Work Sans', -apple-system, 'Sarabun', sans-serif;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: var(--font);
-      background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 50%, #f0e8ff 100%);
+      background: var(--bg);
       min-height: 100vh;
       color: var(--text);
       display: flex;
       flex-direction: column;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* NAV */
     .nav {
-      background: rgba(255,255,255,0.88);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
       position: sticky; top: 0; z-index: 100;
-      box-shadow: 0 2px 20px rgba(37,99,235,0.07);
     }
     .nav-inner {
       max-width: 900px; margin: 0 auto; padding: 0 1.5rem;
-      display: flex; align-items: center; height: 64px; gap: 1rem;
+      display: flex; align-items: center; height: 52px; gap: 1rem;
     }
-    .nav-logo { display: flex; align-items: center; gap: .75rem; text-decoration: none; color: var(--text); }
+    .nav-logo { display: flex; align-items: center; gap: .6rem; text-decoration: none; color: var(--text); }
     .nav-logo-icon {
-      width: 40px; height: 40px; border-radius: 10px;
-      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      width: 34px; height: 34px; border-radius: 10px;
+      background: #1D1D1F;
       display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;
     }
-    .nav-title { font-size: .95rem; font-weight: 700; line-height: 1.2; }
-    .nav-subtitle { font-size: .7rem; color: var(--text-muted); }
-    .nav-links { display: flex; gap: .375rem; margin-left: auto; }
+    .nav-title { font-size: .9rem; font-weight: 700; line-height: 1.2; font-family: 'Outfit', -apple-system, 'Sarabun', sans-serif; }
+    .nav-subtitle { font-size: .65rem; color: var(--text-muted); }
+    .nav-links { display: flex; gap: .25rem; margin-left: auto; }
     .nav-link {
-      padding: .5rem .875rem; border-radius: 8px; text-decoration: none;
-      font-size: .825rem; font-weight: 500; color: var(--text-muted);
+      padding: .4rem .875rem; border-radius: 100px; text-decoration: none;
+      font-size: .8rem; font-weight: 500; color: var(--text-muted);
       transition: all .2s; white-space: nowrap;
     }
-    .nav-link:hover { background: #f1f5f9; color: var(--primary); }
-    .nav-link.active { background: #eff6ff; color: var(--primary); font-weight: 600; }
+    .nav-link:hover { background: rgba(0,0,0,0.04); color: var(--text); }
+    .nav-link.active { background: #1D1D1F; color: #FFFFFF; font-weight: 600; }
 
     /* HERO */
     .hero {
       text-align: center; padding: 4rem 1.5rem 2rem;
     }
-    .hero h1 { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin-bottom: 1rem; font-family: 'Inter', 'Sarabun', sans-serif;}
-    .hero p { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto; line-height: 1.6; }
+    .hero h1 { font-size: 2.25rem; font-weight: 700; color: #1D1D1F; margin-bottom: 1rem; font-family: 'Outfit', -apple-system, 'Sarabun', sans-serif; letter-spacing: -0.03em; }
+    .hero p { font-size: 1.05rem; color: var(--text-muted); max-width: 560px; margin: 0 auto; line-height: 1.6; }
 
     /* CONTENT */
     .container {
@@ -73,70 +74,68 @@
 
     .step-card {
       background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--radius);
       padding: 2.5rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
       box-shadow: var(--shadow);
       display: flex;
       gap: 2rem;
       align-items: flex-start;
       position: relative;
       overflow: hidden;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.2s ease;
     }
     .step-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 40px rgba(37,99,235,0.12);
+      transform: translateY(-2px);
     }
     .step-number {
-      width: 64px; height: 64px;
-      border-radius: 20px;
+      width: 56px; height: 56px;
+      border-radius: 16px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.75rem; font-weight: 800; font-family: 'Inter', sans-serif;
+      font-size: 1.5rem; font-weight: 700; font-family: 'Outfit', sans-serif;
       flex-shrink: 0;
       color: white;
     }
-    .step-1 .step-number { background: linear-gradient(135deg, #6366f1, #4f46e5); }
-    .step-2 .step-number { background: linear-gradient(135deg, #f59e0b, #d97706); }
-    .step-3 .step-number { background: linear-gradient(135deg, #10b981, #059669); }
+    .step-1 .step-number { background: #1D1D1F; }
+    .step-2 .step-number { background: #FF9F0A; }
+    .step-3 .step-number { background: #30D158; }
 
     .step-content { flex: 1; }
-    .step-title { font-size: 1.4rem; font-weight: 700; margin-bottom: .75rem; color: #0f172a; }
-    .step-desc { font-size: 1rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 1.5rem; }
+    .step-title { font-size: 1.3rem; font-weight: 700; margin-bottom: .75rem; color: #1D1D1F; font-family: 'Outfit', -apple-system, 'Sarabun', sans-serif; }
+    .step-desc { font-size: .95rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 1.5rem; }
     
     .step-details {
-      background: #f8fafc;
-      border-radius: 12px;
+      background: #F5F5F7;
+      border-radius: 14px;
       padding: 1.25rem;
-      border: 1px dashed #cbd5e1;
+      border: none;
     }
-    .step-details ul { margin-left: 1.25rem; color: #475569; font-size: 0.95rem; line-height: 1.6; }
+    .step-details ul { margin-left: 1.25rem; color: #6E6E73; font-size: 0.95rem; line-height: 1.6; }
     .step-details li { margin-bottom: 0.5rem; }
     .step-details li:last-child { margin-bottom: 0; }
 
     .btn-action {
       display: inline-flex; align-items: center; gap: 0.5rem;
       padding: 0.75rem 1.5rem;
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white; border-radius: 10px;
+      background: #1D1D1F;
+      color: white; border-radius: 100px;
       text-decoration: none; font-weight: 600; font-size: 0.95rem;
       transition: all 0.2s;
       margin-top: 1.5rem;
     }
     .btn-action:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(37,99,235,0.25);
+      background: #000000;
+      transform: scale(1.02);
     }
     
-    .step-3 .btn-action { background: linear-gradient(135deg, #14b8a6, #0d9488); }
-    .step-3 .btn-action:hover { box-shadow: 0 8px 24px rgba(20,184,166,0.25); }
+    .step-3 .btn-action { background: #1B7340; }
+    .step-3 .btn-action:hover { background: #145A30; }
 
     @media (max-width: 768px) {
       .step-card { flex-direction: column; gap: 1.5rem; padding: 1.5rem; }
       .hero { padding: 3rem 1.5rem 1.5rem; }
-      .hero h1 { font-size: 2rem; }
+      .hero h1 { font-size: 1.75rem; }
     }
   </style>
 </head>

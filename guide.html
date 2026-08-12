@@ -72,7 +72,7 @@
 
     /* CONTENT */
     .container {
-      max-width: 900px; margin: 0 auto; padding: 1.5rem; flex: 1;
+      max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 3rem; flex: 1;
     }
 
     .step-card {
@@ -80,20 +80,24 @@
       border: none;
       border-radius: var(--radius);
       padding: 2.5rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
       box-shadow: var(--shadow);
       display: flex;
+      flex-direction: row;
       gap: 2rem;
       align-items: flex-start;
       position: relative;
-      overflow: hidden;
       transition: transform 0.2s ease;
+    }
+    .step-card:last-child {
+      margin-bottom: 0;
     }
     .step-card:hover {
       transform: translateY(-2px);
     }
     .step-number {
       width: 56px; height: 56px;
+      min-width: 56px; min-height: 56px;
       border-radius: 16px;
       display: flex; align-items: center; justify-content: center;
       font-size: 1.5rem; font-weight: 700; font-family: 'Outfit', sans-serif;
@@ -104,18 +108,24 @@
     .step-2 .step-number { background: #FF9F0A; }
     .step-3 .step-number { background: #30D158; }
 
-    .step-content { flex: 1; }
+    .step-content { flex: 1; min-width: 0; }
     .step-title { font-size: 1.3rem; font-weight: 700; margin-bottom: .75rem; color: #1D1D1F; font-family: 'Outfit', -apple-system, 'Sarabun', sans-serif; }
-    .step-desc { font-size: .95rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 1.5rem; }
+    .step-desc { font-size: .95rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 1.25rem; }
     
     .step-details {
       background: #F5F5F7;
       border-radius: 14px;
-      padding: 1.25rem;
+      padding: 1.25rem 1.5rem;
       border: none;
     }
-    .step-details ul { margin-left: 1.25rem; color: #6E6E73; font-size: 0.95rem; line-height: 1.6; }
-    .step-details li { margin-bottom: 0.5rem; }
+    .step-details strong {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    .step-details ul { margin-left: 1.25rem; color: #6E6E73; font-size: 0.9rem; line-height: 1.8; }
+    .step-details li { margin-bottom: 0.4rem; }
     .step-details li:last-child { margin-bottom: 0; }
 
     .btn-action {
@@ -136,9 +146,11 @@
     .step-3 .btn-action:hover { background: #145A30; }
 
     @media (max-width: 768px) {
-      .step-card { flex-direction: column; gap: 1.5rem; padding: 1.5rem; }
-      .hero { padding: 3rem 1.5rem 1.5rem; }
+      .step-card { flex-direction: column; gap: 1.25rem; padding: 1.75rem; }
+      .step-number { width: 48px; height: 48px; min-width: 48px; min-height: 48px; font-size: 1.25rem; border-radius: 14px; }
+      .hero { padding: 2.5rem 1.5rem 1.5rem; }
       .hero h1 { font-size: 1.75rem; }
+      .container { padding: 1.5rem 1rem 2rem; }
     }
   </style>
 </head>

@@ -662,6 +662,33 @@ function closeModal() {
   confirmBookingName = null;
 }
 
+// ── Generic Confirm Modal ────────────────────────
+function showGenericConfirm(title, desc, icon, confirmText, onConfirm) {
+  const overlay = document.getElementById('modal-overlay-generic');
+  document.getElementById('generic-modal-title').textContent = title;
+  document.getElementById('generic-modal-desc').innerHTML = desc;
+  document.getElementById('generic-modal-icon').textContent = icon;
+  
+  const btnConfirm = document.getElementById('btn-generic-confirm');
+  btnConfirm.textContent = confirmText;
+  
+  // Clear old event listeners by replacing the node
+  const newBtnConfirm = btnConfirm.cloneNode(true);
+  btnConfirm.parentNode.replaceChild(newBtnConfirm, btnConfirm);
+  
+  const btnCancel = document.getElementById('btn-generic-cancel');
+  
+  const close = () => overlay.classList.remove('show');
+  
+  btnCancel.onclick = close;
+  newBtnConfirm.onclick = () => {
+    close();
+    onConfirm();
+  };
+  
+  overlay.classList.add('show');
+}
+
 async function confirmDone() {
   if (!confirmBookingId) return;
   const origText = btnModalConfirm.textContent;
@@ -906,17 +933,24 @@ window.updateLimitCapacity = async function(id, newVal) {
   }
 };
 
-window.deleteLimit = async function(id) {
-  if (!confirm('ยืนยันการลบการตั้งค่านี้?')) return;
-  try {
-    const { error } = await db.from('slot_limits').delete().eq('id', id);
-    if (error) throw error;
-    showToast('ลบการตั้งค่าเรียบร้อย', 'success');
-    loadLimits();
-  } catch (err) {
-    console.error(err);
-    showToast('ลบข้อมูลไม่สำเร็จ', 'error');
-  }
+window.deleteLimit = function(id) {
+  showGenericConfirm(
+    'ยืนยันการลบ',
+    'คุณต้องการลบการตั้งค่าคิวนี้ใช่ไหม? <br><small>(คิวที่นัดแล้วจะไม่ได้รับผลกระทบ)</small>',
+    '🗑️',
+    'ยืนยันลบ',
+    async () => {
+      try {
+        const { error } = await db.from('slot_limits').delete().eq('id', id);
+        if (error) throw error;
+        showToast('ลบการตั้งค่าเรียบร้อย', 'success');
+        loadLimits();
+      } catch (err) {
+        console.error(err);
+        showToast('ลบข้อมูลไม่สำเร็จ', 'error');
+      }
+    }
+  );
 };
 
 
@@ -929,16 +963,22 @@ function startAutoRefresh() {
 
 // ── Logout ────────────────────────────────────
 document.getElementById('btn-logout').addEventListener('click', () => {
-  if (confirm('ต้องการออกจากระบบใช่ไหม?')) {
-    clearInterval(autoRefreshTimer);
-    sessionStorage.removeItem(SESSION_KEY);
-    // Reset form
-    loginUserEl.value = '';
-    loginPassEl.value = '';
-    loginError.classList.remove('show');
-    showLoginScreen();
-    setTimeout(() => loginUserEl.focus(), 300);
-  }
+  showGenericConfirm(
+    'ยืนยันการออกจากระบบ',
+    'คุณต้องการออกจากระบบ Dashboard ใช่ไหม?',
+    '🔐',
+    'ออกจากระบบ',
+    () => {
+      clearInterval(autoRefreshTimer);
+      sessionStorage.removeItem(SESSION_KEY);
+      // Reset form
+      loginUserEl.value = '';
+      loginPassEl.value = '';
+      loginError.classList.remove('show');
+      showLoginScreen();
+      setTimeout(() => loginUserEl.focus(), 300);
+    }
+  );
 });
 
 // ── Bulk Delete Limits ────────────────────────
@@ -965,27 +1005,34 @@ window.updateSelectedLimitsCount = function() {
 };
 
 if (btnDeleteSelected) {
-  btnDeleteSelected.addEventListener('click', async () => {
+  btnDeleteSelected.addEventListener('click', () => {
     const selectedIds = Array.from(document.querySelectorAll('.chk-limit:checked')).map(chk => chk.value);
     if (selectedIds.length === 0) return;
-    if (!confirm(`ยืนยันการลบการตั้งค่าที่เลือกจำนวน ${selectedIds.length} รายการ?`)) return;
     
-    btnDeleteSelected.innerHTML = '⏳ กำลังลบ...';
-    btnDeleteSelected.disabled = true;
-    try {
-      const { error } = await db.from('slot_limits').delete().in('id', selectedIds);
-      if (error) throw error;
-      showToast('ลบรายการที่เลือกเรียบร้อย', 'success');
-      loadLimits();
-    } catch(err) {
-      console.error(err);
-      showToast('เกิดข้อผิดพลาดในการลบ', 'error');
-    } finally {
-      btnDeleteSelected.innerHTML = `🗑️ ลบที่เลือก (<span id="selected-limits-count">0</span>)`;
-      btnDeleteSelected.disabled = false;
-      btnDeleteSelected.style.display = 'none';
-      if(chkAllLimits) chkAllLimits.checked = false;
-    }
+    showGenericConfirm(
+      'ยืนยันลบหลายรายการ',
+      `คุณต้องการลบการตั้งค่าที่เลือกจำนวน <strong>${selectedIds.length}</strong> รายการใช่ไหม?`,
+      '🗑️',
+      'ยืนยันลบ',
+      async () => {
+        btnDeleteSelected.innerHTML = '⏳ กำลังลบ...';
+        btnDeleteSelected.disabled = true;
+        try {
+          const { error } = await db.from('slot_limits').delete().in('id', selectedIds);
+          if (error) throw error;
+          showToast('ลบรายการที่เลือกเรียบร้อย', 'success');
+          loadLimits();
+        } catch(err) {
+          console.error(err);
+          showToast('เกิดข้อผิดพลาดในการลบ', 'error');
+        } finally {
+          btnDeleteSelected.innerHTML = `🗑️ ลบที่เลือก (<span id="selected-limits-count">0</span>)`;
+          btnDeleteSelected.disabled = false;
+          btnDeleteSelected.style.display = 'none';
+          if(chkAllLimits) chkAllLimits.checked = false;
+        }
+      }
+    );
   });
 }
 

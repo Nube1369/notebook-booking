@@ -11,6 +11,16 @@ const ADMIN_USER = 'admin';
 const ADMIN_PASS = 'pcadmin02';
 const SESSION_KEY = 'nb_admin_auth';
 
+// ── Project Switching ────────────────────────
+let currentProject = 'gfca';
+const TABLE_MAP = {
+  gfca: { bookings: 'bookings', slots: 'slot_limits', label: 'GFCA' },
+  aaif: { bookings: 'bookings_aaif', slots: 'slot_limits_aaif', label: 'AAIF' },
+};
+function getTable(key) {
+  return TABLE_MAP[currentProject][key];
+}
+
 // ── Time Slots (Single source of truth) ──────
 // ถ้าต้องการเพิ่ม/ลดเวลา แก้ที่นี่ที่เดียวเลย (dashboard.js และ appointment.js)
 const DASH_TIME_SLOTS = [
@@ -99,6 +109,32 @@ if (isAuthenticated()) {
   showLoginScreen();
   // Don't load data until logged in
   setTimeout(() => loginUserEl.focus(), 300);
+}
+
+// ── Project Switcher Event ───────────────────
+document.querySelectorAll('.project-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const proj = btn.dataset.project;
+    if (proj === currentProject) return;
+    switchProject(proj);
+  });
+});
+
+function switchProject(proj) {
+  currentProject = proj;
+  // Update button states
+  document.querySelectorAll('.project-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.querySelector(`.project-btn[data-project="${proj}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+  // Update label
+  const label = document.getElementById('project-label');
+  if (label) label.textContent = TABLE_MAP[proj].label;
+  // Reset data and re-fetch
+  allBookings = [];
+  updateStats();
+  renderBookings();
+  if (calendar) { calendar.removeAllEvents(); }
+  if (isAuthenticated()) fetchAll();
 }
 
 
@@ -311,9 +347,10 @@ function exportToExcel() {
   XLSX.utils.book_append_sheet(wb, wsSummary, 'สรุป');
 
   const dateStr = new Date().toISOString().split('T')[0];
+  const projLabel = TABLE_MAP[currentProject].label;
   const label = currentView === 'grid' ? `_${currentTab}` : '_all';
-  XLSX.writeFile(wb, `IT_Notebook_Bookings${label}_${dateStr}.xlsx`);
-  showToast(`📊 Export สำเร็จ! ${toExport.length} รายการ`, 'success');
+  XLSX.writeFile(wb, `IT_Notebook_${projLabel}${label}_${dateStr}.xlsx`);
+  showToast(`📊 Export สำเร็จ! ${toExport.length} รายการ (${projLabel})`, 'success');
 }
 
 // ── Calendar Initialization ───────────────────
@@ -470,7 +507,7 @@ async function fetchAll() {
 
   try {
     const { data, error } = await db
-      .from('bookings')
+      .from(getTable('bookings'))
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -700,7 +737,7 @@ async function confirmDone() {
     const numericId = Number(confirmBookingId);
 
     const { data, error } = await db
-      .from('bookings')
+      .from(getTable('bookings'))
       .update({ 
         status: 'completed',
         completed_at: new Date().toISOString()
@@ -758,7 +795,7 @@ async function confirmDelivered() {
   try {
     const numericId = Number(confirmDeliveredId);
     const { data, error } = await db
-      .from('bookings')
+      .from(getTable('bookings'))
       .update({ 
         status: 'delivered',
         delivered_at: new Date().toISOString()
@@ -831,7 +868,7 @@ settingsForm.addEventListener('submit', async (e) => {
     
     // Upsert each slot
     for (const slot of slotsToUpdate) {
-      const { error } = await db.from('slot_limits').upsert({
+      const { error } = await db.from(getTable('slots')).upsert({
         slot_date: dateVal,
         slot_time: slot,
         max_capacity: parseInt(capVal, 10)
@@ -854,7 +891,7 @@ settingsForm.addEventListener('submit', async (e) => {
 async function loadLimits() {
   limitsTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem;">กำลังโหลด...</td></tr>';
   try {
-    let query = db.from('slot_limits').select('*').order('slot_date', { ascending: true }).order('slot_time', { ascending: true });
+    let query = db.from(getTable('slots')).select('*').order('slot_date', { ascending: true }).order('slot_time', { ascending: true });
     
     const filterDate = document.getElementById('filter-limit-date')?.value;
     if (filterDate) {
@@ -874,7 +911,7 @@ async function loadLimits() {
     // Fetch bookings to count
     const limitDates = [...new Set(data.map(d => d.slot_date))];
     const { data: bookings, error: bErr } = await db
-      .from('bookings')
+      .from(getTable('bookings'))
       .select('appointment_date, appointment_time')
       .in('appointment_date', limitDates)
       .in('status', ['scheduled', 'delivered']);
@@ -922,7 +959,7 @@ window.updateLimitCapacity = async function(id, newVal) {
   try {
     const val = parseInt(newVal, 10);
     if (isNaN(val) || val < 1) return loadLimits();
-    const { error } = await db.from('slot_limits').update({ max_capacity: val }).eq('id', id);
+    const { error } = await db.from(getTable('slots')).update({ max_capacity: val }).eq('id', id);
     if (error) throw error;
     showToast('อัปเดตจำนวนคิวเรียบร้อย', 'success');
     loadLimits();
@@ -941,7 +978,7 @@ window.deleteLimit = function(id) {
     'ยืนยันลบ',
     async () => {
       try {
-        const { error } = await db.from('slot_limits').delete().eq('id', id);
+        const { error } = await db.from(getTable('slots')).delete().eq('id', id);
         if (error) throw error;
         showToast('ลบการตั้งค่าเรียบร้อย', 'success');
         loadLimits();
@@ -1018,7 +1055,7 @@ if (btnDeleteSelected) {
         btnDeleteSelected.innerHTML = '⏳ กำลังลบ...';
         btnDeleteSelected.disabled = true;
         try {
-          const { error } = await db.from('slot_limits').delete().in('id', selectedIds);
+          const { error } = await db.from(getTable('slots')).delete().in('id', selectedIds);
           if (error) throw error;
           showToast('ลบรายการที่เลือกเรียบร้อย', 'success');
           loadLimits();

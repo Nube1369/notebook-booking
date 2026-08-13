@@ -4,7 +4,6 @@
 // ============================================
 
 // ── Supabase Configuration ──────────────────
-// TODO: Replace with your actual Supabase project values
 const SUPABASE_URL = 'https://nnnqshuptvirjbnesjvb.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ubnFzaHVwdHZpcmpibmVzanZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5OTIzNDIsImV4cCI6MjEwMTU2ODM0Mn0.gtAkjGe-rSrf5fzCwwcYgdLF68mNs5dRVTIODXo0Lag';
 
@@ -42,7 +41,6 @@ const eyeClosedSVG = `<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8
   <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`;
 
 toggleBtn.addEventListener('click', () => {
-  const isPassword = machineCodeInput.type === 'password' || machineCodeInput.type === 'text';
   if (machineCodeInput.type === 'text') {
     machineCodeInput.type = 'password';
     eyeIcon.innerHTML = eyeOpenSVG;
@@ -163,6 +161,10 @@ function collectFormData() {
   const floorCheckboxes = document.querySelectorAll('input[name="printer_floors"]:checked');
   const printerFloors = Array.from(floorCheckboxes).map(cb => cb.value);
 
+  // Printer other (free text)
+  const printerOther = document.getElementById('printer-other').value.trim();
+  if (printerOther) printerFloors.push(printerOther);
+
   // Backup items
   const backupCheckboxes = document.querySelectorAll('input[name="backup_items"]:checked');
   const backupItems = Array.from(backupCheckboxes).map(cb => cb.value);
@@ -261,31 +263,22 @@ form.addEventListener('submit', async (e) => {
   const ref = generateRef();
 
   try {
-    // Check if Supabase is configured
-    if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
-      // Demo mode: simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      showToast('⚠️ Demo Mode: ยังไม่ได้ตั้งค่า Supabase', '');
-      showSuccess(ref, data);
-    } else {
-      // Real Supabase insert
-      const { error } = await db.from('bookings').insert([{
-        ref_number: ref,
-        full_name: data.fullName,
-        phone: data.phone,
-        machine_code: data.machineCode,
-        printer_floors: data.printerFloors,
-        backup_items: data.backupItems,
-        backup_notes: data.backupNotes || null,
-        status: 'pending',
-        created_at: new Date().toISOString()
-      }]);
+    const { error } = await db.from('bookings').insert([{
+      ref_number: ref,
+      full_name: data.fullName,
+      phone: data.phone,
+      machine_code: data.machineCode,
+      printer_floors: data.printerFloors,
+      backup_items: data.backupItems,
+      backup_notes: data.backupNotes || null,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    }]);
 
-      if (error) throw error;
+    if (error) throw error;
 
-      showSuccess(ref, data);
-      showToast('จองสำเร็จแล้ว! 🎉', 'success');
-    }
+    showSuccess(ref, data);
+    showToast('จองสำเร็จแล้ว! 🎉', 'success');
   } catch (err) {
     console.error('Supabase error:', err);
     showToast('เกิดข้อผิดพลาด: ' + (err.message || 'ไม่สามารถส่งข้อมูลได้'), 'error');
@@ -323,5 +316,3 @@ btnNewBooking.addEventListener('click', () => {
 // ── Initial setup ────────────────────────────
 // Make machine code input start as password type
 machineCodeInput.type = 'password';
-console.log('%c📋 Notebook Booking System', 'font-size:16px;font-weight:bold;color:#2563eb');
-console.log('%c⚙️  Remember to set your Supabase credentials in app.js', 'color:#d97706');

@@ -668,12 +668,9 @@ async function confirmDone() {
   btnModalConfirm.disabled = true;
   btnModalConfirm.textContent = 'กำลังบันทึก...';
 
-  console.log('🔄 confirmDone called with id:', confirmBookingId, 'type:', typeof confirmBookingId);
-
   try {
     // Convert id to number since BIGSERIAL is integer
     const numericId = Number(confirmBookingId);
-    console.log('🔄 Updating booking id:', numericId);
 
     const { data, error } = await db
       .from('bookings')
@@ -684,12 +681,7 @@ async function confirmDone() {
       .eq('id', numericId)
       .select();
 
-    console.log('📦 Update response - data:', data, 'error:', error);
-
-    if (error) {
-      console.error('❌ Supabase error:', error);
-      throw error;
-    }
+    if (error) throw error;
 
     if (!data || data.length === 0) {
       console.warn('⚠️ No rows updated! RLS might be blocking the update.');
@@ -697,7 +689,6 @@ async function confirmDone() {
       return;
     }
 
-    console.log('✅ Update success! Updated row:', data[0]);
     closeModal();
     showToast('✅ มาร์คว่าเสร็จแล้วสำเร็จ!', 'success');
     
@@ -710,7 +701,6 @@ async function confirmDone() {
 
     await fetchAll();
   } catch (err) {
-    console.error('❌ confirmDone error:', err);
     showToast('เกิดข้อผิดพลาด: ' + (err.message || JSON.stringify(err)), 'error');
   } finally {
     btnModalConfirm.disabled = false;
@@ -768,7 +758,6 @@ async function confirmDelivered() {
 
     await fetchAll();
   } catch (err) {
-    console.error('❌ confirmDelivered error:', err);
     showToast('เกิดข้อผิดพลาด: ' + (err.message || JSON.stringify(err)), 'error');
   } finally {
     btnModalConfirmDelivered.disabled = false;
@@ -1006,5 +995,5 @@ if (isAuthenticated()) {
   fetchAll();
   startAutoRefresh();
 }
-console.log('%c📊 Dashboard — Admin Only', 'font-size:14px;font-weight:bold;color:#6366f1');
+
 

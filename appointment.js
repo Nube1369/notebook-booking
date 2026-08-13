@@ -127,7 +127,7 @@ function maskCode(code) {
 }
 
 function renderDropdown(bookings) {
-  const statusLabel = { pending: '⏳ รอ', in_progress: '🔵 ดำเนินการ', completed: '✅ พร้อมแล้ว', scheduled: '📅 นัดแล้ว' };
+  const statusLabel = { pending: '⏳ รอ', in_progress: '🟢 ดำเนินการ', completed: '✅ พร้อมแล้ว', scheduled: '📅 นัดแล้ว', delivered: '🏁 เสร็จเรียบร้อย' };
   resultsDropdown.innerHTML = bookings.map(b => `
     <div class="result-item" data-id="${b.id}">
       <div class="result-avatar">${b.full_name.charAt(0).toUpperCase()}</div>
@@ -169,6 +169,7 @@ function renderDetail(b) {
     in_progress: `<span class="status-badge status-badge--pending"><span class="status-dot"></span>กำลังดำเนินการ</span>`,
     completed: `<span class="status-badge status-badge--completed"><span class="status-dot"></span>พร้อมแล้ว ✅</span>`,
     scheduled: `<span class="status-badge status-badge--scheduled"><span class="status-dot"></span>นัดหมายแล้ว</span>`,
+    delivered: `<span class="status-badge" style="background:#ccfbf1;color:#0f766e;"><span class="status-dot"></span>เสร็จเรียบร้อย 🏁</span>`,
   };
   dStatusBadge.innerHTML = statusMap[b.status] || b.status;
 
@@ -208,6 +209,13 @@ function renderStatusSection(b) {
         <div class="state-scheduled-detail">
           ${formatApptDate(b.appointment_date)} เวลา ${b.appointment_time} น.
         </div>
+      </div>`;
+  } else if (b.status === 'delivered') {
+    statusSection.innerHTML = `
+      <div class="state-scheduled" style="background:#f0fdfa;border-color:#99f6e4;">
+        <div class="state-scheduled-icon">🏁</div>
+        <h3 style="color:#0f766e;">เสร็จเรียบร้อยแล้ว</h3>
+        <p style="font-size:.85rem;color:#0d9488;margin-top:.5rem;">เครื่องของคุณได้รับการส่งมอบเรียบร้อยแล้ว ขอบคุณที่ใช้บริการครับ</p>
       </div>`;
   } else {
     statusSection.innerHTML = '';
@@ -338,7 +346,7 @@ async function checkSlotCapacity(dateStr) {
   // Reset all buttons first
   timeBtns.forEach(btn => {
     btn.disabled = false;
-    btn.classList.remove('full');
+    btn.classList.remove('full', 'closed');
     btn.innerHTML = btn.dataset.time;
   });
 
@@ -481,4 +489,4 @@ function showToast(msg, type = '') {
   toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
-console.log('%c📅 Appointment scheduler loaded', 'font-size:14px;font-weight:bold;color:#6366f1');
+

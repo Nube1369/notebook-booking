@@ -673,6 +673,8 @@ function renderCard(b) {
       <div class="card-info">
         <div class="card-row">📞 <strong>${b.phone}</strong></div>
         <div class="card-row">💻 รหัสเครื่อง: <span class="card-machine">${escapeHtml(b.machine_code)}</span></div>
+        ${b.old_st ? `<div class="card-row">🏷️ S/T เก่า: <strong>${escapeHtml(b.old_st)}</strong></div>` : ''}
+        ${b.new_st ? `<div class="card-row">🏷️ S/T ใหม่: <strong>${escapeHtml(b.new_st)}</strong></div>` : ''}
       </div>
       ${(floorTags || backupTags) ? `<div class="card-tags">${floorTags}${backupTags}</div>` : ''}
       ${notesHtml}

@@ -120,13 +120,12 @@ async function doSearch(query) {
 
 // ── Render dropdown results ────────────────────
 function maskPhone(phone) {
-  if (!phone || phone.length < 4) return '***';
-  return phone.substring(0, 3) + '*'.repeat(phone.length - 5) + phone.substring(phone.length - 2);
+  if (!phone) return '***';
+  return '*'.repeat(phone.length);
 }
 function maskCode(code) {
   if (!code) return '***';
-  if (code.length <= 2) return '*'.repeat(code.length);
-  return code.charAt(0) + '*'.repeat(code.length - 2) + code.charAt(code.length - 1);
+  return '*'.repeat(code.length);
 }
 
 function renderDropdown(bookings) {

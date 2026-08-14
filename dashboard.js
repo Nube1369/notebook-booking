@@ -777,6 +777,10 @@ function openDeliveredModal(id, name) {
   confirmDeliveredId = id;
   confirmDeliveredName = name;
   modalNameDeliveredEl.textContent = name;
+  const oldStInput = document.getElementById('old-st');
+  const newStInput = document.getElementById('new-st');
+  if (oldStInput) oldStInput.value = '';
+  if (newStInput) newStInput.value = '';
   modalOverlayDelivered.classList.add('show');
 }
 
@@ -788,18 +792,30 @@ function closeDeliveredModal() {
 
 async function confirmDelivered() {
   if (!confirmDeliveredId) return;
+  const oldStInput = document.getElementById('old-st');
+  const newStInput = document.getElementById('new-st');
+  const oldSt = oldStInput ? oldStInput.value.trim() : '';
+  const newSt = newStInput ? newStInput.value.trim() : '';
+  
   const origText = btnModalConfirmDelivered.textContent;
   btnModalConfirmDelivered.disabled = true;
   btnModalConfirmDelivered.textContent = 'กำลังบันทึก...';
 
   try {
     const numericId = Number(confirmDeliveredId);
+    
+    // We update old_st and new_st only if they are provided, 
+    // but typically we can always send them. Make sure the db schema has these columns.
+    const payload = { 
+      status: 'delivered',
+      delivered_at: new Date().toISOString()
+    };
+    if (oldSt) payload.old_st = oldSt;
+    if (newSt) payload.new_st = newSt;
+
     const { data, error } = await db
       .from(getTable('bookings'))
-      .update({ 
-        status: 'delivered',
-        delivered_at: new Date().toISOString()
-      })
+      .update(payload)
       .eq('id', numericId)
       .select();
 

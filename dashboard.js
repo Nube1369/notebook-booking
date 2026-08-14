@@ -509,7 +509,7 @@ async function fetchAll() {
     const { data, error } = await db
       .from(getTable('bookings'))
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: true });
 
     if (error) throw error;
     allBookings = data || [];

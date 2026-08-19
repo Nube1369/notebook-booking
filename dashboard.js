@@ -42,11 +42,58 @@ const NB_NUMBERIC_NAMES = {
   ],
 };
 
+// ── Clean & Normalize Name for Robust Comparison ─
+function normalizeName(str) {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    // Remove common prefixes/titles: Mr, Mrs, Miss, Ms, Khun, K., Dr, Prof, Ajarn
+    .replace(/^(mr\.|mr|mrs\.|mrs|miss\.|miss|ms\.|ms|khun|k\.|k|dr\.|dr|prof\.|prof|aj\.|ajarn)\s+/i, '')
+    // Handle K. or Dr. attached directly to name: e.g. "k.yupha" -> "yupha"
+    .replace(/^[k|dr]\.([a-z])/i, '$1')
+    // Remove bracketed notes: e.g. (Accounting), [IT], {GFCA}
+    .replace(/[\(\[\{].*?[\)\]\}]/g, ' ')
+    // Replace punctuation, dots, hyphens with space
+    .replace(/[^a-z0-9\s]/g, ' ')
+    // Collapse multiple spaces
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function isNumberic(name) {
-  const list = NB_NUMBERIC_NAMES[currentProject] || [];
   if (!name) return false;
-  const normalized = name.trim().toLowerCase();
-  return list.some(n => n.toLowerCase() === normalized);
+  const list = NB_NUMBERIC_NAMES[currentProject] || [];
+  const cleanInput = normalizeName(name);
+  if (!cleanInput) return false;
+
+  const inputTokens = cleanInput.split(' ').filter(Boolean);
+
+  return list.some(targetName => {
+    const cleanTarget = normalizeName(targetName);
+    const targetTokens = cleanTarget.split(' ').filter(Boolean);
+
+    // 1. Direct exact match after normalization
+    if (cleanInput === cleanTarget) return true;
+
+    // 2. Substring match (e.g. input contains target or vice-versa)
+    if (cleanInput.includes(cleanTarget) || cleanTarget.includes(cleanInput)) return true;
+
+    // 3. Token-based match: All tokens of target are in input (order independent)
+    // E.g. "Seloa Yupha" vs "Yupha Seloa", or "Miss Yupha Seloa (Fin)"
+    if (targetTokens.length > 0 && targetTokens.every(t => inputTokens.includes(t))) {
+      return true;
+    }
+
+    // 4. Fuzzy token prefix matching (e.g. first 4+ characters match)
+    if (targetTokens.length >= 2) {
+      const matchAll = targetTokens.every(tTok => 
+        inputTokens.some(iTok => iTok === tTok || (iTok.length >= 4 && tTok.startsWith(iTok)) || (tTok.length >= 4 && iTok.startsWith(tTok)))
+      );
+      if (matchAll) return true;
+    }
+
+    return false;
+  });
 }
 
 // ── Time Slots (Single source of truth) ──────
@@ -518,7 +565,8 @@ function handleEventClick(info) {
   const statusEmojis = { pending:'⏳', in_progress:'🔄', completed:'✅', scheduled:'📅', delivered:'🏁' };
   const emo = statusEmojis[ep.status] || '📋';
 
-  document.getElementById('ep-name').textContent    = info.event.title;
+  const isNum = isNumberic(info.event.title);
+  document.getElementById('ep-name').textContent    = info.event.title + (isNum ? ' 🔢' : '');
   document.getElementById('ep-ref').textContent     = '#' + ep.ref;
   const epStatus = document.getElementById('ep-status');
   epStatus.textContent = emo + ' ' + ep.statusLabel;

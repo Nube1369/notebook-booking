@@ -42,6 +42,151 @@ const NB_NUMBERIC_NAMES = {
   ],
 };
 
+// ── Department Map (from Name-Department CSVs) ──────
+// Maps employee names to their department across all projects
+const DEPARTMENT_MAP = {
+  // GFCA
+  'Warunporn Sisupho': 'Business Development',
+  'Sakda Ruanruay': 'Business Development',
+  'Kanokwan Wajangam': 'Business Development',
+  'Gonniga Rodraksasap': 'Business Development',
+  'Sansani Saenbunsong': 'Business Development',
+  'Tanabadee Seedaboot': 'Corporate Affairs',
+  'Ariporn Chaijamorn': 'Finance & Accounting',
+  'Manussagit Chatthai': 'Finance & Accounting',
+  'Roongthip Takam': 'Finance & Accounting',
+  'Kampol Sangsrijan': 'Finance & Accounting',
+  'Yupha Seloa': 'Finance & Accounting',
+  'Wongduen Hanupab': 'Finance & Accounting',
+  'Apidech Noonuan': 'Finance & Accounting',
+  'Supranee Naksawat': 'Finance & Accounting',
+  'Siriphong Buaban': 'Finance & Accounting',
+  'Parut Srihamart': 'Finance & Accounting',
+  'Ratree Choobut': 'Finance & Accounting',
+  'Somwadee Poonyarit': 'Finance & Accounting',
+  'Panassanan Wanma': 'Human Resource & Organization Development',
+  'Wasuthaporn Kittisopa': 'Human Resource & Organization Development',
+  'Pittaya Isarawongtawa': 'Human Resource & Organization Development',
+  'Thanpicha Yodpetchthai': 'Human Resource & Organization Development',
+  'Kwanjira Kaewbucha': 'Human Resource & Organization Development',
+  'Jumpol Dansirikul': 'Information Technology',
+  'Kanyarat Thongaiom': 'Information Technology',
+  'Ananya Chairob': 'Information Technology',
+  'Kanate Hattakorn': 'Information Technology',
+  'Sakkarat Makme': 'Information Technology',
+  'Jarinya Inta': 'Supply Chain Management',
+  'Sirisak Sakulloh': 'Supply Chain Management',
+  // AAIF
+  'Wimonrat Kaboocha': 'Engineer',
+  'Permsak Phupirom': 'Engineer',
+  'Manop Ngamkala': 'Engineer',
+  'Pornpot Sudsaweang': 'Engineer',
+  'Wiroth Khongthon': 'Engineer',
+  'Sutatsa Wongsang': 'Finance & Account',
+  'Kamonsri Namwongapichrt': 'Human Resources & Admin',
+  'Praerung Ruangsri': 'Human Resources & Admin',
+  'Totsaporn Wiriyapornsawat': 'Manufacturing Excellence',
+  'Sanit Thipaksorn': 'Manufacturing Excellence',
+  'Suphakchaya Suttadit': 'MRP',
+  'Sira Takrudthong': 'OPH & Pasteurize',
+  'Noppadon Onsooddee': 'OPH & Pasteurize',
+  'Narongchai Somjai': 'Production 2',
+  'Wipharat Sompong': 'QA',
+  'Sutisa Thongkum': 'Quality Management',
+  'Alongkot Pratumrat': 'Quality Management',
+  'Benjamaporn Rujit': 'Quality Management',
+  'Treenate Santaratti': 'Quality Management',
+  'Pakkawan Janpen': 'SHE',
+  'Suriya Mhosin': 'SHE',
+  'Pinyo Yamchum': 'SHE',
+  'Tachamon Undiat': 'Supply Chain & Logistic',
+  'Jittapa Jennavin': 'Supply Chain & Logistic',
+  'Somjai Tummung': 'Supply Chain Management',
+  'Wandee Aoniam': 'Supply Chain Management',
+  'Rattanavadee Chumnanklang': 'Supply Chain Management',
+  'Nataya Siangchin': 'UHT',
+  'Jatuporn Pipitpong': 'Warehouse',
+  'Warakorn Pumjan': 'Warehouse',
+  'Eakkaluk Udomsuk': 'Warehouse',
+  // AAI
+  'Orawan Kansawat': 'Business Development',
+  'Pavinee Payungrat': 'Business Development',
+  'Tatchaya Wongcharoen': 'Management',
+  'Kanchiya Sawatdilux': 'OBM',
+  'Attavit Ngampiboonsombat': 'OBM',
+  'Panicha Poungsalee': 'OBM',
+  'Lukkana Pongsak': 'OBM',
+  'Premika Pai-arun': 'OBM',
+  'Thassanee Cherdchoosuwan': 'OBM',
+  'Rachaneekorn Maneemak': 'OBM',
+  'Panitnart Noiruchchukorn': 'OBM',
+  'Naramon Chomphujit': 'OBM',
+  'Natnatcha Wattanakijyingyong': 'OBM',
+  'Sawarot Yongkrason': 'OBM',
+  'Songkran Thanadsornsan': 'OBM',
+  'Natthawut Muangthuean': 'OBM',
+  'Netrnapha Mungkaligul': 'OBM',
+  'Suchada Dullayasopapun': 'OEM Sales',
+  'Naratch-orn Sopee': 'Quality Management',
+  'Porntip Mothong': 'Quality Management',
+  'Patcharaporn Anantathanarak': 'Strategic Marketing',
+  'Yutthapoom Premprawat': 'Strategic Marketing',
+  'Sarocha Jimak': 'Supply Chain & Logistic',
+  'Aduenan Maruesa': 'Supply Chain & Logistic',
+  'Patchara Kunakum': 'Supply Chain & Logistic',
+  'Mutchima Jinda': 'Supply Chain & Logistic',
+  'Weeraya Wachiramon': 'Supply Chain & Logistic',
+  'Pattanan Maharapeepat': 'Supply Chain & Logistic',
+  'Phacharamon Uchai': 'Supply Chain & Logistic',
+  // FIT
+  'Veerathep Thepsuwan': 'Food',
+  'Kanyanee Chuseng': 'Customer Relations Management',
+  'Itthaya Chanlasri': 'Procurement',
+  'Pinthip Doungkuy': 'Customer Relations Management',
+  'Pisut Kongkiattisak': 'Marketing',
+  'Suwimon Kaewnuch': 'Technical',
+  'Sopistha Tanjit': 'Technical',
+  'Paerkaew Wijarn': 'Procurement',
+  'Kulkunya Sasaphure': 'Food Suppliment',
+  'Jitiporn Kunsittipaisan': 'Food Suppliment',
+  'Atittaya Supsasom': 'Technical',
+  'Chalermpol Klangsopa': 'Warehouse',
+  // IFB
+  'Preeyakan Kanjanarajit': 'Research & Development',
+  'Neeranuch Buaphang': 'Research & Development',
+  'Penpichaya Wattanasirikhajonchai': 'Research & Development',
+  'Apinya Chumyoi': 'Research & Development',
+  'Kittipon Phanyasawan': 'Research & Development',
+};
+
+// Build normalized lookup for fuzzy matching
+const DEPARTMENT_LOOKUP = Object.entries(DEPARTMENT_MAP).map(([name, dept]) => ({
+  original: name,
+  normalized: name.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim(),
+  tokens: name.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean),
+  department: dept,
+}));
+
+// ── Company Map (which company each person belongs to) ──────
+const COMPANY_MAP = {};
+// GFCA
+['Warunporn Sisupho','Sakda Ruanruay','Kanokwan Wajangam','Gonniga Rodraksasap','Sansani Saenbunsong','Tanabadee Seedaboot','Ariporn Chaijamorn','Manussagit Chatthai','Roongthip Takam','Kampol Sangsrijan','Yupha Seloa','Wongduen Hanupab','Apidech Noonuan','Supranee Naksawat','Siriphong Buaban','Parut Srihamart','Ratree Choobut','Somwadee Poonyarit','Panassanan Wanma','Wasuthaporn Kittisopa','Pittaya Isarawongtawa','Thanpicha Yodpetchthai','Kwanjira Kaewbucha','Jumpol Dansirikul','Kanyarat Thongaiom','Ananya Chairob','Kanate Hattakorn','Sakkarat Makme','Jarinya Inta','Sirisak Sakulloh'].forEach(n => COMPANY_MAP[n] = 'GFCA');
+// AAIF
+['Wimonrat Kaboocha','Permsak Phupirom','Manop Ngamkala','Pornpot Sudsaweang','Wiroth Khongthon','Sutatsa Wongsang','Kamonsri Namwongapichrt','Praerung Ruangsri','Totsaporn Wiriyapornsawat','Sanit Thipaksorn','Suphakchaya Suttadit','Sira Takrudthong','Noppadon Onsooddee','Narongchai Somjai','Wipharat Sompong','Sutisa Thongkum','Alongkot Pratumrat','Benjamaporn Rujit','Treenate Santaratti','Pakkawan Janpen','Suriya Mhosin','Pinyo Yamchum','Tachamon Undiat','Jittapa Jennavin','Somjai Tummung','Wandee Aoniam','Rattanavadee Chumnanklang','Nataya Siangchin','Jatuporn Pipitpong','Warakorn Pumjan','Eakkaluk Udomsuk'].forEach(n => COMPANY_MAP[n] = 'AAIF');
+// AAI
+['Orawan Kansawat','Pavinee Payungrat','Tatchaya Wongcharoen','Kanchiya Sawatdilux','Attavit Ngampiboonsombat','Panicha Poungsalee','Lukkana Pongsak','Premika Pai-arun','Thassanee Cherdchoosuwan','Rachaneekorn Maneemak','Panitnart Noiruchchukorn','Naramon Chomphujit','Natnatcha Wattanakijyingyong','Sawarot Yongkrason','Songkran Thanadsornsan','Natthawut Muangthuean','Netrnapha Mungkaligul','Suchada Dullayasopapun','Naratch-orn Sopee','Porntip Mothong','Patcharaporn Anantathanarak','Yutthapoom Premprawat','Sarocha Jimak','Aduenan Maruesa','Patchara Kunakum','Mutchima Jinda','Weeraya Wachiramon','Pattanan Maharapeepat','Phacharamon Uchai'].forEach(n => COMPANY_MAP[n] = 'AAI');
+// FIT
+['Veerathep Thepsuwan','Kanyanee Chuseng','Itthaya Chanlasri','Pinthip Doungkuy','Pisut Kongkiattisak','Suwimon Kaewnuch','Sopistha Tanjit','Paerkaew Wijarn','Kulkunya Sasaphure','Jitiporn Kunsittipaisan','Atittaya Supsasom','Chalermpol Klangsopa'].forEach(n => COMPANY_MAP[n] = 'FIT');
+// IFB
+['Preeyakan Kanjanarajit','Neeranuch Buaphang','Penpichaya Wattanasirikhajonchai','Apinya Chumyoi','Kittipon Phanyasawan'].forEach(n => COMPANY_MAP[n] = 'IFB');
+
+// Build normalized lookup for company
+const COMPANY_LOOKUP = Object.entries(COMPANY_MAP).map(([name, company]) => ({
+  normalized: name.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim(),
+  tokens: name.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean),
+  company,
+}));
+
 // ── Clean & Normalize Name for Robust Comparison ─
 function normalizeName(str) {
   if (!str) return '';
@@ -143,6 +288,97 @@ function isNumberic(name) {
 
     return false;
   });
+}
+
+// ── Get Department from Name ─────────────────
+function getDepartment(name) {
+  if (!name) return '';
+  const cleanInput = normalizeName(name);
+  if (!cleanInput) return '';
+  const inputTokens = cleanInput.split(' ').filter(Boolean);
+
+  for (const entry of DEPARTMENT_LOOKUP) {
+    // 1. Exact match after normalization
+    if (cleanInput === entry.normalized) return entry.department;
+
+    // 2. Substring match
+    if (cleanInput.includes(entry.normalized) || entry.normalized.includes(cleanInput)) return entry.department;
+
+    // 3. Token-based match with typo tolerance
+    if (entry.tokens.length > 0) {
+      const matchAll = entry.tokens.every(tTok =>
+        inputTokens.some(iTok => {
+          if (iTok === tTok) return true;
+          if (tTok.length >= 3 && iTok.length >= 3) {
+            if (tTok.startsWith(iTok) || iTok.startsWith(tTok)) return true;
+            if (tTok.length >= 4 && iTok.length >= 4 && tTok.substring(0, 4) === iTok.substring(0, 4)) return true;
+          }
+          const maxTypos = tTok.length > 5 ? 2 : 1;
+          if (getEditDistance(iTok, tTok) <= maxTypos) return true;
+          return false;
+        })
+      );
+      if (matchAll) return entry.department;
+    }
+
+    // 4. Fallback: first + last name fuzzy match
+    if (entry.tokens.length >= 2 && inputTokens.length >= 2) {
+      const tFirst = entry.tokens[0];
+      const tLast = entry.tokens[1];
+      const firstMatch = inputTokens.some(iTok =>
+        getEditDistance(iTok, tFirst) <= 2 ||
+        (tFirst.length >= 4 && iTok.startsWith(tFirst.substring(0, 4)))
+      );
+      const lastMatch = inputTokens.some(iTok =>
+        getEditDistance(iTok, tLast) <= 2 ||
+        (tLast.length >= 4 && iTok.startsWith(tLast.substring(0, 4)))
+      );
+      if (firstMatch && lastMatch) return entry.department;
+    }
+  }
+  return '';
+}
+
+// ── Get Company from Name ────────────────────
+function getCompany(name) {
+  if (!name) return '';
+  const cleanInput = normalizeName(name);
+  if (!cleanInput) return '';
+  const inputTokens = cleanInput.split(' ').filter(Boolean);
+
+  for (const entry of COMPANY_LOOKUP) {
+    if (cleanInput === entry.normalized) return entry.company;
+    if (cleanInput.includes(entry.normalized) || entry.normalized.includes(cleanInput)) return entry.company;
+    if (entry.tokens.length > 0) {
+      const matchAll = entry.tokens.every(tTok =>
+        inputTokens.some(iTok => {
+          if (iTok === tTok) return true;
+          if (tTok.length >= 3 && iTok.length >= 3) {
+            if (tTok.startsWith(iTok) || iTok.startsWith(tTok)) return true;
+            if (tTok.length >= 4 && iTok.length >= 4 && tTok.substring(0, 4) === iTok.substring(0, 4)) return true;
+          }
+          const maxTypos = tTok.length > 5 ? 2 : 1;
+          if (getEditDistance(iTok, tTok) <= maxTypos) return true;
+          return false;
+        })
+      );
+      if (matchAll) return entry.company;
+    }
+    if (entry.tokens.length >= 2 && inputTokens.length >= 2) {
+      const tFirst = entry.tokens[0];
+      const tLast = entry.tokens[1];
+      const firstMatch = inputTokens.some(iTok =>
+        getEditDistance(iTok, tFirst) <= 2 ||
+        (tFirst.length >= 4 && iTok.startsWith(tFirst.substring(0, 4)))
+      );
+      const lastMatch = inputTokens.some(iTok =>
+        getEditDistance(iTok, tLast) <= 2 ||
+        (tLast.length >= 4 && iTok.startsWith(tLast.substring(0, 4)))
+      );
+      if (firstMatch && lastMatch) return entry.company;
+    }
+  }
+  return '';
 }
 
 // ── Time Slots (Single source of truth) ──────
@@ -443,6 +679,8 @@ function exportToExcel() {
     'ลำดับ':                          i + 1,
     'รหัสอ้างอิง':                    b.ref_number || '',
     'ชื่อ-นามสกุล':                   b.full_name || '',
+    'Company':                         getCompany(b.full_name) || '',
+    'Department':                      getDepartment(b.full_name) || '',
     'Numberic':                       isNumberic(b.full_name) ? 'ใช่' : '',
     'เบอร์โทร':                       b.phone || '',
     'รหัสเครื่อง (Machine Code)':     b.machine_code || '',
@@ -467,6 +705,8 @@ function exportToExcel() {
     {wch:6},   // ลำดับ
     {wch:22},  // รหัสอ้างอิง
     {wch:28},  // ชื่อ-นามสกุล
+    {wch:10},  // Company
+    {wch:32},  // Department
     {wch:10},  // Numberic
     {wch:14},  // เบอร์โทร
     {wch:22},  // รหัสเครื่อง
@@ -775,7 +1015,14 @@ function renderBookings() {
     return;
   }
 
-  grid.innerHTML = filtered.map(renderCard).join('');
+  // Build duplicate name count map
+  const nameCountMap = {};
+  allBookings.forEach(bk => {
+    const key = normalizeName(bk.full_name);
+    if (key) nameCountMap[key] = (nameCountMap[key] || 0) + 1;
+  });
+
+  grid.innerHTML = filtered.map(b => renderCard(b, nameCountMap)).join('');
 
   // Attach done button events
   grid.querySelectorAll('.btn-done').forEach(btn => {
@@ -787,7 +1034,7 @@ function renderBookings() {
   });
 }
 
-function renderCard(b) {
+function renderCard(b, nameCountMap) {
   const statusLabels = {
     pending: '<span class="status-badge status-badge--pending"><span class="status-dot"></span>รอดำเนินการ</span>',
     in_progress: '<span class="status-badge status-badge--in_progress"><span class="status-dot"></span>กำลังดำเนินการ</span>',
@@ -796,6 +1043,23 @@ function renderCard(b) {
     delivered: '<span class="status-badge status-badge--delivered"><span class="status-dot"></span>เสร็จเรียบร้อย</span>',
   };
 
+  // Warning tags: duplicate name & unknown name
+  const normalizedName = normalizeName(b.full_name);
+  const dupCount = nameCountMap ? (nameCountMap[normalizedName] || 0) : 0;
+  const isDuplicate = dupCount > 1;
+  const isUnknown = !getCompany(b.full_name);
+
+  const duplicateTag = isDuplicate
+    ? `<span class="tag tag--duplicate" title="พบชื่อซ้ำ ${dupCount} รายการในระบบ">🚨 ชื่อซ้ำ (${dupCount})</span>` : '';
+  const unknownTag = isUnknown
+    ? `<span class="tag tag--unknown" title="ไม่พบชื่อนี้ในรายชื่อพนักงาน">❓ ไม่พบในรายชื่อ</span>` : '';
+
+  const company = getCompany(b.full_name);
+  const companyTag = company
+    ? `<span class="tag tag--company">🏭 ${escapeHtml(company)}</span>` : '';
+  const dept = getDepartment(b.full_name);
+  const deptTag = dept
+    ? `<span class="tag tag--department">🏢 ${escapeHtml(dept)}</span>` : '';
   const numbericTag = isNumberic(b.full_name)
     ? '<span class="tag tag--numberic">🔢 Numberic</span>' : '';
   const floorTags = (b.printer_floors || [])
@@ -850,7 +1114,7 @@ function renderCard(b) {
         ${b.old_st ? `<div class="card-row">🏷️ S/T เก่า: <strong>${escapeHtml(b.old_st)}</strong></div>` : ''}
         ${b.new_st ? `<div class="card-row">🏷️ S/T ใหม่: <strong>${escapeHtml(b.new_st)}</strong></div>` : ''}
       </div>
-      ${(numbericTag || floorTags || backupTags) ? `<div class="card-tags">${numbericTag}${floorTags}${backupTags}</div>` : ''}
+      ${(duplicateTag || unknownTag || companyTag || deptTag || numbericTag || floorTags || backupTags) ? `<div class="card-tags">${duplicateTag}${unknownTag}${companyTag}${deptTag}${numbericTag}${floorTags}${backupTags}</div>` : ''}
       ${notesHtml}
       <div class="card-footer">${footer}</div>
     </div>`;

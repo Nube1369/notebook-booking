@@ -60,6 +60,29 @@ function normalizeName(str) {
     .trim();
 }
 
+// Simple Levenshtein distance for typo tolerance (e.g. seloh vs seloa)
+function getEditDistance(a, b) {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // substitution
+          matrix[i][j - 1] + 1,     // insertion
+          matrix[i - 1][j] + 1      // deletion
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
 function isNumberic(name) {
   if (!name) return false;
   const list = NB_NUMBERIC_NAMES[currentProject] || [];
@@ -78,18 +101,44 @@ function isNumberic(name) {
     // 2. Substring match (e.g. input contains target or vice-versa)
     if (cleanInput.includes(cleanTarget) || cleanTarget.includes(cleanInput)) return true;
 
-    // 3. Token-based match: All tokens of target are in input (order independent)
-    // E.g. "Seloa Yupha" vs "Yupha Seloa", or "Miss Yupha Seloa (Fin)"
-    if (targetTokens.length > 0 && targetTokens.every(t => inputTokens.includes(t))) {
-      return true;
-    }
-
-    // 4. Fuzzy token prefix matching (e.g. first 4+ characters match)
-    if (targetTokens.length >= 2) {
+    // 3. Token-based match with typo & prefix tolerance
+    if (targetTokens.length > 0) {
       const matchAll = targetTokens.every(tTok => 
-        inputTokens.some(iTok => iTok === tTok || (iTok.length >= 4 && tTok.startsWith(iTok)) || (tTok.length >= 4 && iTok.startsWith(tTok)))
+        inputTokens.some(iTok => {
+          if (iTok === tTok) return true;
+          
+          // Check substring / prefix
+          if (tTok.length >= 3 && iTok.length >= 3) {
+            if (tTok.startsWith(iTok) || iTok.startsWith(tTok)) return true;
+            // Check prefix of 4 chars (e.g. selo... matches selo...)
+            if (tTok.length >= 4 && iTok.length >= 4 && tTok.substring(0, 4) === iTok.substring(0, 4)) return true;
+          }
+          
+          // Check Levenshtein distance (allow 1 typo for short words, 2 for long words)
+          const maxTypos = tTok.length > 5 ? 2 : 1;
+          if (getEditDistance(iTok, tTok) <= maxTypos) return true;
+          
+          return false;
+        })
       );
       if (matchAll) return true;
+    }
+
+    // 4. Fallback: First name matches closely AND last name matches closely (even if order swapped)
+    if (targetTokens.length >= 2 && inputTokens.length >= 2) {
+      const tFirst = targetTokens[0];
+      const tLast = targetTokens[1];
+      
+      const firstMatch = inputTokens.some(iTok => 
+        getEditDistance(iTok, tFirst) <= 2 || 
+        (tFirst.length >= 4 && iTok.startsWith(tFirst.substring(0, 4)))
+      );
+      const lastMatch = inputTokens.some(iTok => 
+        getEditDistance(iTok, tLast) <= 2 || 
+        (tLast.length >= 4 && iTok.startsWith(tLast.substring(0, 4)))
+      );
+      
+      if (firstMatch && lastMatch) return true;
     }
 
     return false;

@@ -21,6 +21,34 @@ function getTable(key) {
   return TABLE_MAP[currentProject][key];
 }
 
+// ── NB Numberic Name List (per project) ──────
+const NB_NUMBERIC_NAMES = {
+  gfca: [
+    'Ariporn Chaijamorn',
+    'Manussagit Chatthai',
+    'Roongthip Takam',
+    'Kampol Sangsrijan',
+    'Yupha Seloa',
+    'Wongduen Hanupab',
+    'Apidech Noonuan',
+    'Supranee Naksawat',
+    'Siriphong Buaban',
+    'Parut Srihamart',
+    'Ratree Choobut',
+    'Somwadee Poonyarit',
+  ],
+  aaif: [
+    'Sutatsa Wongsang',
+  ],
+};
+
+function isNumberic(name) {
+  const list = NB_NUMBERIC_NAMES[currentProject] || [];
+  if (!name) return false;
+  const normalized = name.trim().toLowerCase();
+  return list.some(n => n.toLowerCase() === normalized);
+}
+
 // ── Time Slots (Single source of truth) ──────
 // ถ้าต้องการเพิ่ม/ลดเวลา แก้ที่นี่ที่เดียวเลย (dashboard.js และ appointment.js)
 const DASH_TIME_SLOTS = [
@@ -273,8 +301,8 @@ function switchView(view) {
 btnExport.addEventListener('click', exportToExcel);
 
 function exportToExcel() {
-  // Export current tab's filtered data (or all if in calendar view)
-  const toExport = currentView === 'grid' ? getFiltered() : allBookings;
+  // Always export ALL bookings (ข้อมูลทั้งหมด)
+  const toExport = [...allBookings];
   if (toExport.length === 0) {
     showToast('ไม่มีข้อมูลสำหรับ Export', 'error');
     return;
@@ -288,59 +316,107 @@ function exportToExcel() {
     'delivered':   'เสร็จเรียบร้อย',
     'cancelled':   'ยกเลิก'
   };
-  const tabMap = {
-    'pending':   'รอดำเนินการ',
-    'completed': 'เสร็จแล้ว',
-    'scheduled': 'นัดหมายแล้ว',
-    'delivered': 'เสร็จเรียบร้อย'
-  };
 
-  // Build rows
+  // Sort: by status priority (pending→completed→scheduled→delivered), then by created_at (newest first)
+  const statusOrder = { pending: 1, in_progress: 1, completed: 2, scheduled: 3, delivered: 4, cancelled: 5 };
+  toExport.sort((a, b) => {
+    const orderA = statusOrder[a.status] || 99;
+    const orderB = statusOrder[b.status] || 99;
+    if (orderA !== orderB) return orderA - orderB;
+    // Same status → sort by created_at descending (newest first)
+    return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+  });
+
+  // Format date helper for Excel (readable Thai)
+  function fmtDateThai(isoStr) {
+    if (!isoStr) return '';
+    return new Date(isoStr).toLocaleString('th-TH', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+  function fmtApptDateThai(dateStr) {
+    if (!dateStr) return '';
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('th-TH', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    });
+  }
+
+  // Build rows with ALL fields
   const excelData = toExport.map((b, i) => ({
-    'ลำดับ':                       i + 1,
-    'รหัสอ้างอิง':                 b.ref_number || '',
-    'ชื่อ-นามสกุล':                b.full_name || '',
-    'เบอร์โทร':                    b.phone || '',
-    'รหัสเครื่อง (Machine Code)':  b.machine_code || '',
-    'สถานะ':                       statusMap[b.status] || b.status || '',
-    'วันที่สร้างรายการ':           formatDate(b.created_at),
-    'วันที่ทำเสร็จ':               b.completed_at ? formatDate(b.completed_at) : '',
-    'วันที่กดนัดหมาย':             b.scheduled_at ? formatDate(b.scheduled_at) : '',
-    'วันที่ส่งมอบ':                b.delivered_at ? formatDate(b.delivered_at) : '',
-    'เครื่องปริ้น (ชั้น)':         b.printer_floors ? b.printer_floors.join(', ') : '',
-    'รายการ Backup':               b.backup_items   ? b.backup_items.join(', ')   : '',
-    'หมายเหตุ Backup':             b.backup_notes || '',
-    'วันที่นัดหมาย (รับเครื่อง)':    b.appointment_date ? formatApptDate(b.appointment_date) : '',
-    'เวลานัดหมาย (รับเครื่อง)':    b.appointment_time || ''
+    'ลำดับ':                          i + 1,
+    'รหัสอ้างอิง':                    b.ref_number || '',
+    'ชื่อ-นามสกุล':                   b.full_name || '',
+    'Numberic':                       isNumberic(b.full_name) ? 'ใช่' : '',
+    'เบอร์โทร':                       b.phone || '',
+    'รหัสเครื่อง (Machine Code)':     b.machine_code || '',
+    'สถานะ':                          statusMap[b.status] || b.status || '',
+    'เครื่องปริ้น (ชั้น)':            b.printer_floors ? b.printer_floors.join(', ') : '',
+    'รายการ Backup':                  b.backup_items ? b.backup_items.join(', ') : '',
+    'หมายเหตุ Backup':                b.backup_notes || '',
+    'S/T เก่า':                       b.old_st || '',
+    'S/T ใหม่':                       b.new_st || '',
+    'วันที่นัดหมาย (รับเครื่อง)':    b.appointment_date ? fmtApptDateThai(b.appointment_date) : '',
+    'เวลานัดหมาย':                    b.appointment_time || '',
+    'วันที่สร้างรายการ':              fmtDateThai(b.created_at),
+    'วันที่ทำเสร็จ':                  b.completed_at ? fmtDateThai(b.completed_at) : '',
+    'วันที่กดนัดหมาย':                b.scheduled_at ? fmtDateThai(b.scheduled_at) : '',
+    'วันที่ส่งมอบ':                   b.delivered_at ? fmtDateThai(b.delivered_at) : '',
   }));
 
   const ws = XLSX.utils.json_to_sheet(excelData);
 
-  // Column widths
+  // Column widths (generous for Thai text)
   ws['!cols'] = [
-    {wch:6},{wch:20},{wch:28},{wch:14},{wch:22},{wch:16},
-    {wch:22},{wch:22},{wch:22},{wch:22},{wch:22},{wch:28},{wch:28},{wch:24},{wch:14}
+    {wch:6},   // ลำดับ
+    {wch:22},  // รหัสอ้างอิง
+    {wch:28},  // ชื่อ-นามสกุล
+    {wch:10},  // Numberic
+    {wch:14},  // เบอร์โทร
+    {wch:22},  // รหัสเครื่อง
+    {wch:18},  // สถานะ
+    {wch:18},  // เครื่องปริ้น
+    {wch:30},  // รายการ Backup
+    {wch:28},  // หมายเหตุ Backup
+    {wch:16},  // S/T เก่า
+    {wch:16},  // S/T ใหม่
+    {wch:28},  // วันที่นัดหมาย
+    {wch:12},  // เวลานัดหมาย
+    {wch:24},  // วันที่สร้างรายการ
+    {wch:24},  // วันที่ทำเสร็จ
+    {wch:24},  // วันที่กดนัดหมาย
+    {wch:24},  // วันที่ส่งมอบ
   ];
 
   // Freeze top row (header)
   ws['!freeze'] = { xSplit:0, ySplit:1, topLeftCell:'A2', activePane:'bottomLeft' };
 
   const wb = XLSX.utils.book_new();
-  const sheetName = currentView === 'grid' ? (tabMap[currentTab] || 'ทั้งหมด') : 'ทั้งหมด';
-  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  // Set workbook properties for Thai codepage
+  wb.Props = { codePage: 874 };
+  XLSX.utils.book_append_sheet(wb, ws, 'ข้อมูลทั้งหมด');
 
   // Summary sheet
+  const pendingCount = allBookings.filter(b => b.status==='pending'||b.status==='in_progress').length;
+  const completedCount = allBookings.filter(b => b.status==='completed').length;
+  const scheduledCount = allBookings.filter(b => b.status==='scheduled').length;
+  const deliveredCount = allBookings.filter(b => b.status==='delivered').length;
+  const numbericCount = allBookings.filter(b => isNumberic(b.full_name)).length;
+
   const summaryRows = [
-    { 'หัวข้อ': 'รายงาน IT Notebook Booking',  'ข้อมูล': '' },
-    { 'หัวข้อ': 'Export โดย',                   'ข้อมูล': 'Admin' },
-    { 'หัวข้อ': 'วันที่ Export',                 'ข้อมูล': new Date().toLocaleString('th-TH') },
-    { 'หัวข้อ': '─────────────────────',         'ข้อมูล': '' },
-    { 'หัวข้อ': 'รวมทั้งหมด',                   'ข้อมูล': allBookings.length },
-    { 'หัวข้อ': 'รอดำเนินการ',                  'ข้อมูล': allBookings.filter(b => b.status==='pending'||b.status==='in_progress').length },
-    { 'หัวข้อ': 'เสร็จแล้ว',                    'ข้อมูล': allBookings.filter(b => b.status==='completed').length },
-    { 'หัวข้อ': 'นัดหมายแล้ว',                  'ข้อมูล': allBookings.filter(b => b.status==='scheduled').length },
-    { 'หัวข้อ': '─────────────────────',         'ข้อมูล': '' },
-    { 'หัวข้อ': 'จำนวนที่ Export (sheet นี้)',   'ข้อมูล': toExport.length },
+    { 'หัวข้อ': 'รายงาน IT Notebook Booking',     'ข้อมูล': '' },
+    { 'หัวข้อ': 'โปรเจค',                          'ข้อมูล': TABLE_MAP[currentProject].label },
+    { 'หัวข้อ': 'Export โดย',                       'ข้อมูล': 'Admin' },
+    { 'หัวข้อ': 'วันที่ Export',                    'ข้อมูล': new Date().toLocaleString('th-TH') },
+    { 'หัวข้อ': '─────────────────────',            'ข้อมูล': '' },
+    { 'หัวข้อ': 'รวมทั้งหมด',                      'ข้อมูล': allBookings.length },
+    { 'หัวข้อ': 'รอดำเนินการ',                     'ข้อมูล': pendingCount },
+    { 'หัวข้อ': 'เสร็จแล้ว',                       'ข้อมูล': completedCount },
+    { 'หัวข้อ': 'นัดหมายแล้ว',                     'ข้อมูล': scheduledCount },
+    { 'หัวข้อ': 'เสร็จเรียบร้อย',                  'ข้อมูล': deliveredCount },
+    { 'หัวข้อ': '─────────────────────',            'ข้อมูล': '' },
+    { 'หัวข้อ': 'จำนวน Numberic',                   'ข้อมูล': numbericCount },
+    { 'หัวข้อ': 'จำนวนที่ Export ในไฟล์นี้',        'ข้อมูล': toExport.length },
   ];
   const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
   wsSummary['!cols'] = [{wch:32},{wch:24}];
@@ -348,9 +424,8 @@ function exportToExcel() {
 
   const dateStr = new Date().toISOString().split('T')[0];
   const projLabel = TABLE_MAP[currentProject].label;
-  const label = currentView === 'grid' ? `_${currentTab}` : '_all';
-  XLSX.writeFile(wb, `IT_Notebook_${projLabel}${label}_${dateStr}.xlsx`);
-  showToast(`📊 Export สำเร็จ! ${toExport.length} รายการ (${projLabel})`, 'success');
+  XLSX.writeFile(wb, `IT_Notebook_${projLabel}_ทั้งหมด_${dateStr}.xlsx`, { bookSST: true, codepage: 874 });
+  showToast(`📊 Export สำเร็จ! ${toExport.length} รายการทั้งหมด (${projLabel})`, 'success');
 }
 
 // ── Calendar Initialization ───────────────────
@@ -624,6 +699,8 @@ function renderCard(b) {
     delivered: '<span class="status-badge status-badge--delivered"><span class="status-dot"></span>เสร็จเรียบร้อย</span>',
   };
 
+  const numbericTag = isNumberic(b.full_name)
+    ? '<span class="tag tag--numberic">🔢 Numberic</span>' : '';
   const floorTags = (b.printer_floors || [])
     .map(f => `<span class="tag tag--floor">🖨️ ชั้น ${f}</span>`).join('');
   const backupTags = (b.backup_items || [])
@@ -676,7 +753,7 @@ function renderCard(b) {
         ${b.old_st ? `<div class="card-row">🏷️ S/T เก่า: <strong>${escapeHtml(b.old_st)}</strong></div>` : ''}
         ${b.new_st ? `<div class="card-row">🏷️ S/T ใหม่: <strong>${escapeHtml(b.new_st)}</strong></div>` : ''}
       </div>
-      ${(floorTags || backupTags) ? `<div class="card-tags">${floorTags}${backupTags}</div>` : ''}
+      ${(numbericTag || floorTags || backupTags) ? `<div class="card-tags">${numbericTag}${floorTags}${backupTags}</div>` : ''}
       ${notesHtml}
       <div class="card-footer">${footer}</div>
     </div>`;

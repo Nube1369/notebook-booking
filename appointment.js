@@ -223,10 +223,9 @@ function renderStatusSection(b) {
 
 // ── Render date/time scheduler ─────────────────
 function renderScheduler() {
-  // Min date = tomorrow
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split('T')[0];
+  // Min date = today (allow same-day booking for upcoming slots)
+  const today = new Date();
+  const minDate = today.toISOString().split('T')[0];
 
   // Max date = 60 days from now
   const maxDate = new Date();
@@ -277,10 +276,37 @@ function renderScheduler() {
   document.getElementById('appt-date').addEventListener('change', async (e) => {
     checkCanConfirm();
     await checkSlotCapacity(e.target.value);
+    disablePastTimeSlots(e.target.value);
   });
 
   // Confirm button
   document.getElementById('btn-confirm-appt').addEventListener('click', confirmAppointment);
+}
+
+// ── Disable past time slots when today is selected ──
+function disablePastTimeSlots(dateStr) {
+  const todayStr = new Date().toISOString().split('T')[0];
+  if (dateStr !== todayStr) return; // only apply for today
+
+  const now = new Date();
+  const currentHHMM = now.getHours() * 60 + now.getMinutes();
+
+  document.querySelectorAll('.time-btn').forEach(btn => {
+    if (btn.disabled) return; // already disabled (full/closed), skip
+    const [h, m] = btn.dataset.time.split(':').map(Number);
+    const slotMinutes = h * 60 + m;
+    if (slotMinutes <= currentHHMM) {
+      btn.disabled = true;
+      btn.classList.add('closed');
+      btn.innerHTML = `${btn.dataset.time}<br><span style="font-size:0.65rem;">ผ่านแล้ว</span>`;
+      // Unselect if this was the selected time
+      if (selectedTime === btn.dataset.time) {
+        btn.classList.remove('selected');
+        selectedTime = null;
+        checkCanConfirm();
+      }
+    }
+  });
 }
 
 function checkCanConfirm() {

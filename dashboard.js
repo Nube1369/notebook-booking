@@ -126,6 +126,7 @@ const DEPARTMENT_MAP = {
   'Songkran Thanadsornsan': 'OBM',
   'Natthawut Muangthuean': 'OBM',
   'Netrnapha Mungkaligul': 'OBM',
+  'Usa Prasoblarp': 'OBM',
   'Suchada Dullayasopapun': 'OEM Sales',
   'Naratch-orn Sopee': 'Quality Management',
   'Porntip Mothong': 'Quality Management',
@@ -174,7 +175,7 @@ const COMPANY_MAP = {};
 // AAIF
 ['Wimonrat Kaboocha','Permsak Phupirom','Manop Ngamkala','Pornpot Sudsaweang','Wiroth Khongthon','Sutatsa Wongsang','Kamonsri Namwongapichrt','Praerung Ruangsri','Totsaporn Wiriyapornsawat','Sanit Thipaksorn','Suphakchaya Suttadit','Sira Takrudthong','Noppadon Onsooddee','Narongchai Somjai','Wipharat Sompong','Sutisa Thongkum','Alongkot Pratumrat','Benjamaporn Rujit','Treenate Santaratti','Pakkawan Janpen','Suriya Mhosin','Pinyo Yamchum','Tachamon Undiat','Jittapa Jennavin','Somjai Tummung','Wandee Aoniam','Rattanavadee Chumnanklang','Nataya Siangchin','Jatuporn Pipitpong','Warakorn Pumjan','Eakkaluk Udomsuk'].forEach(n => COMPANY_MAP[n] = 'AAIF');
 // AAI
-['Orawan Kansawat','Pavinee Payungrat','Tatchaya Wongcharoen','Kanchiya Sawatdilux','Attavit Ngampiboonsombat','Panicha Poungsalee','Lukkana Pongsak','Premika Pai-arun','Thassanee Cherdchoosuwan','Rachaneekorn Maneemak','Panitnart Noiruchchukorn','Naramon Chomphujit','Natnatcha Wattanakijyingyong','Sawarot Yongkrason','Songkran Thanadsornsan','Natthawut Muangthuean','Netrnapha Mungkaligul','Suchada Dullayasopapun','Naratch-orn Sopee','Porntip Mothong','Patcharaporn Anantathanarak','Yutthapoom Premprawat','Sarocha Jimak','Aduenan Maruesa','Patchara Kunakum','Mutchima Jinda','Weeraya Wachiramon','Pattanan Maharapeepat','Phacharamon Uchai'].forEach(n => COMPANY_MAP[n] = 'AAI');
+['Orawan Kansawat','Pavinee Payungrat','Tatchaya Wongcharoen','Kanchiya Sawatdilux','Attavit Ngampiboonsombat','Panicha Poungsalee','Lukkana Pongsak','Premika Pai-arun','Thassanee Cherdchoosuwan','Rachaneekorn Maneemak','Panitnart Noiruchchukorn','Naramon Chomphujit','Natnatcha Wattanakijyingyong','Sawarot Yongkrason','Songkran Thanadsornsan','Natthawut Muangthuean','Netrnapha Mungkaligul','Usa Prasoblarp','Suchada Dullayasopapun','Naratch-orn Sopee','Porntip Mothong','Patcharaporn Anantathanarak','Yutthapoom Premprawat','Sarocha Jimak','Aduenan Maruesa','Patchara Kunakum','Mutchima Jinda','Weeraya Wachiramon','Pattanan Maharapeepat','Phacharamon Uchai'].forEach(n => COMPANY_MAP[n] = 'AAI');
 // FIT
 ['Veerathep Thepsuwan','Kanyanee Chuseng','Itthaya Chanlasri','Pinthip Doungkuy','Pisut Kongkiattisak','Suwimon Kaewnuch','Sopistha Tanjit','Paerkaew Wijarn','Kulkunya Sasaphure','Jitiporn Kunsittipaisan','Atittaya Supsasom','Chalermpol Klangsopa'].forEach(n => COMPANY_MAP[n] = 'FIT');
 // IFB

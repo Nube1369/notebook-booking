@@ -298,6 +298,41 @@ async function confirmAppointment() {
   btn.innerHTML = `<svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="white" stroke-width="2" stroke-linecap="round"/></svg> กำลังบันทึก...`;
 
   try {
+    // ── Re-check capacity before saving (prevent race condition) ──
+    const { data: limits, error: lErr } = await db
+      .from(TABLE_SLOT_LIMITS)
+      .select('max_capacity')
+      .eq('slot_date', apptDate)
+      .eq('slot_time', apptTime)
+      .single();
+
+    if (lErr || !limits) {
+      showToast('⚠️ ช่วงเวลานี้ไม่เปิดรับจองแล้ว กรุณาเลือกเวลาใหม่', 'error');
+      await checkSlotCapacity(apptDate);
+      btn.disabled = false;
+      btn.innerHTML = '📅 ยืนยันนัดหมาย';
+      return;
+    }
+
+    const { data: existing, error: bErr } = await db
+      .from(TABLE_BOOKINGS)
+      .select('id')
+      .eq('appointment_date', apptDate)
+      .eq('appointment_time', apptTime)
+      .in('status', ['scheduled', 'delivered']);
+
+    if (bErr) throw bErr;
+
+    const currentCount = (existing || []).length;
+    if (currentCount >= limits.max_capacity) {
+      showToast('❌ เวลานี้เต็มแล้ว กรุณาเลือกเวลาอื่น', 'error');
+      await checkSlotCapacity(apptDate); // refresh UI buttons
+      btn.disabled = false;
+      btn.innerHTML = '📅 ยืนยันนัดหมาย';
+      return;
+    }
+    // ── End capacity check ──
+
     const { error } = await db
       .from(TABLE_BOOKINGS)
       .update({

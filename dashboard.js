@@ -14,8 +14,8 @@ const SESSION_KEY = 'nb_admin_auth';
 // ── Project Switching ────────────────────────
 let currentProject = 'gfca';
 const TABLE_MAP = {
-  gfca: { bookings: 'bookings', slots: 'slot_limits', label: 'GFCA' },
-  aaif: { bookings: 'bookings_aaif', slots: 'slot_limits_aaif', label: 'AAIF' },
+  gfca: { bookings: 'bookings', slots: 'slot_limits', label: 'GFCA', navBooking: 'index.html', navAppointment: 'appointment.html' },
+  aaif: { bookings: 'bookings_aaif', slots: 'slot_limits_aaif', label: 'AAIF', navBooking: 'aaif/index.html', navAppointment: 'aaif/appointment.html' },
 };
 function getTable(key) {
   return TABLE_MAP[currentProject][key];
@@ -490,6 +490,17 @@ function switchProject(proj) {
   // Update label
   const label = document.getElementById('project-label');
   if (label) label.textContent = TABLE_MAP[proj].label;
+  
+  // Update top nav links based on project
+  const navBooking = document.getElementById('nav-link-booking');
+  const navAppointment = document.getElementById('nav-link-appointment');
+  if (navBooking) {
+    navBooking.href = TABLE_MAP[proj].navBooking;
+  }
+  if (navAppointment) {
+    navAppointment.href = TABLE_MAP[proj].navAppointment;
+  }
+
   // Reset data and re-fetch
   allBookings = [];
   updateStats();
@@ -1080,8 +1091,9 @@ function renderCard(b, nameCountMap) {
         เสร็จแล้ว
       </button>`;
   } else if (b.status === 'completed') {
+    const apptLink = TABLE_MAP[currentProject].navAppointment;
     footer = `
-      <a class="btn-appt" href="appointment.html?name=${encodeURIComponent(b.full_name)}">
+      <a class="btn-appt" href="${apptLink}?name=${encodeURIComponent(b.full_name)}">
         📅 นัดหมาย
       </a>`;
   } else if (b.status === 'scheduled') {
